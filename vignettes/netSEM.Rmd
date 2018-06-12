@@ -1,0 +1,55 @@
+---
+title: "netSEM v0.5.0"
+author: "Wei-Heng Huang, Laura S. Bruckman, Roger H. French"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction of netSEM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+What is netSEM v0.5.0 and what does it do?
+---------------------------
+
+The R package 'netSEM v0.5.0' conducts a network statistical analysis (network structural equation modeling) on a dataframe of coincident observations of multiple continuous variables.  This analysis builds a pathway model by exploring a pool of domain knowledge guided candidate statistical causal relationships between each of the variable pairs, selecting the 'best fit' on the basis of the goodness-of-fit statistic, such as adjusted r-squared value which measures how successful the fit is in explaining the variation of the data.
+
+The netSEM methodology is motivated by the analysis of systems that are experiencing degradation of some performance characteristic under exposure to a particular stressor which is considered as exagenous variable.  In addition to the direct relation between the exagenous variables and the endegenous variable, netSEM investigates protential connections between them through other covariates.
+
+To this goal, variables are separated into the categories of 'Exagenous' and 'Endegenous'.  Relationships exceeding a specified criteria are sought backwards from the main endegenous variable, through the intermediate variables which are considered as exogenous variable, then back to the last exagenous variable. The intermediate variables usually has the well known "feedback loop" behaviour, as they occure as exagenous variables in some equations and endegenous variables in other equations, thus the nonrecursive case is carefully handled.
+
+The resulting relationship diagram can be used to generate insight into the pathways of the system under observation.  By identifying sequences of strong relationships that match well to prior domain knowledge, this pathways can be indicated which are good candidates to address for the improvement of the performance characteristics.
+
+
+How does netSEM v0.5.0 work?
+---------------------------
+
+The R package 'netSEM v0.5.0' analyzes a dataframe including a column as a main endegenous variable and all other columns as exagenous variables. It is also of interest to mention that sgSEM provides a measurement statistical model for the most important relationships in the SEM senario, which is the "Nonrecuresive Relationships" where the exagenous variables can be occured as endegenous variables.  In the current version all variables are required to be continuous.
+
+The function 'netSEMm()' takes this dataframe as the main input, along with optional arguments specifying the column names of the exagenouse and endegenous variables.
+
+Starting with the main endegenous variable to the last exagenous variable through the intermediate variables which are considered as exogenous variable, where the nonrecuresive relationships usually occure. For each two variables "pairwise" data are fit with each of the following six functional forms that appear most frequently in time domain science: simple linear regression, quadratic regression, simple quadratic regression, exponential regression, logarithmic regression and change point regression.  The 'best' of these functional forms is chosen on the specific criterion of the adjusted r-squared value.
+
+The 'netSEMm()' function outputs an R object featuring a 'plot()' method that generates a flow chart style diagram, detailing the relevant characteristics of the uncovered relationships between variables.
+
+
+Install and load the package
+--------------------------
+
+After downloading the package file "netSEM_0.5.0.tar.gz", put it in your preferred working directory and run both of the following lines:
+```{r, eval=FALSE}
+install.packages("netSEM_0.5.0.tar.gz", repos = NULL, type = "source")
+library(netSEM)
+```
+
+
+
+
+
+Sources
+------------
+1. Bruckman, Laura S., Nicholas R. Wheeler, Junheng Ma, Ethan Wang, Carl K. Wang, Ivan Chou, Jiayang Sun, and Roger H. French. "Statistical and Domain Analytics Applied to PV Module Lifetime and Degradation Science." IEEE Access 1 (2013): 384-403.       
+
+2. Bruckman, Laura S., Nicholas R. Wheeler, Ian V. Kidd, Jiayang Sun, and Roger H. French. "Photovoltaic Lifetime and Degradation Science Statistical Pathway Development: Acrylic Degradation." In SPIE Solar Energy+ Technology, 8825:88250D-8. International Society for Optics and Photonics, 2013.
+
+

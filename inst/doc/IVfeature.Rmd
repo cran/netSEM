@@ -1,0 +1,58 @@
+---
+title: "Current-Voltage(I-V) Features of Photovoltaic Modules"
+author: "Jiqi Liu, Alan Curran, Justin S. Fada, Xuan Ma, Wei-Heng Huang, Jennifer L. Braid, Roger H. French"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{IV features}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+Data Description
+-----------------------------------
+
+The dataset is current-voltage(I-V) features data obtained by I-V features extracted algorithm for the brand A modules under damp heat indoor accelerated test which is up to 3000 hours. The measurement were taken every 500h. The raw data is provided by SunEdison company. 
+The I-V features include max power(Pmp), short circuit current(Isc), current at max power(Imp), fill factor(FF), series resistance(Rs), shunt resistance(Rsh), open circuit voltage(Voc), voltage at max power(Vmp). Rsh is too noisy to contain for modeling. After checking the correlation between Isc, Imp, Voc, Vmp, FF, Rs. FF, Rs, Vmp are highly correlated, so we randomly select one to be contained in the model. Here we choose Isc, Imp, Rs and Voc to be contained in the model and these four I-V features show no indication of high correlation. The trend of the I-V features are related with the mechanims of PV degradation. The variable 'dy' is time that has been converted into decimal year in which 1 means 1 year.
+We would use this dataet to buit <S|M|R> model with time as stressor, four I-V features as mechanisms and max power as reponse.
+
+Load data and run code to build netSEM 
+------------------------------------------
+```{r, message=FALSE, eval=FALSE}
+
+## Load the acrylic data set
+data("IVfeature")
+
+## Run netSEM
+ans <- netSEMm(IVfeature)
+
+## Subset dataset with three cutoff
+res <- subsetData(ans,cutoff = c(0.25,0.5,0.8))
+
+## Plot the network model 
+plot(ans,res)
+
+```
+
+
+Network diagram for data
+--------------------------
+
+The direct path which is from dy to Pmp has an adjusted r squared as 0.757. Considering The path with one mechanism, the paths contain Imp or Rs are likely to be as good as the direct path. The path from dy to Rs has an adjusted r squared as 0.761 and the path from Rs to Pmp has an adjusted r squared as 0.912. The path from dy to Imp has an adjusted r squared as 0.683 and the path from Imp to Pmp has an adjusted r squared as 0.829. And we further use the pathwayRMSE functuion to calculate the root mean squared error(RMSE) of the direct path and the two path with Imp or Rs. The RMSE for the direct path is 2.8998, for the path contain Imp is 3.3007, for the path contain Rs is 2.9053. So overall speaking, the predicted accuracy of the direct path and the path contain Rs is very close to each other and the latter one has Rs involved which is able to tell more about the degradation mechanism so it's a better path.
+
+
+```{r, out.width="675px", echo=FALSE}
+knitr::include_graphics("IVfeature.png")
+```
+
+Reference
+--------------------------
+J. Liu, Alan Curren, Justin S. Fada, Xuan Ma, Wei-Heng Huang, C.Birk Jones,
+E. Schnabel, M. Kohl, Jennifer L. Braid, and Roger H.French, “Cross-correlation 
+Analysis of the Indoor Accelerated and Real World Exposed Photovoltaic Systems 
+Across Multiple Climate Zones,” in Cross-correlation Analysis of the Indoor 
+Accelerated and Real World Exposed Photovoltaic Systems Across Multiple Climate 
+Zones, Waikoloa, HI, 2018.
+
+Acknowledgment
+--------------------------
+This material is based upon work supported by the U.S. Department of Energy’s Office of Energy Efficiency and Renewable Energy (EERE) under Solar Energy Technologies Office (SETO) Agreement Number DE-EE0007140. 
