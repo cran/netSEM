@@ -12,7 +12,7 @@
 
 <meta name="author" content="Wei-Heng Huang, Laura S. Bruckman, Roger H. French" />
 
-<meta name="date" content="2018-06-10" />
+<meta name="date" content="2018-11-28" />
 
 <title>netSEM v0.5.0</title>
 
@@ -70,22 +70,22 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">netSEM v0.5.0</h1>
 <h4 class="author"><em>Wei-Heng Huang, Laura S. Bruckman, Roger H. French</em></h4>
-<h4 class="date"><em>2018-06-10</em></h4>
+<h4 class="date"><em>2018-11-28</em></h4>
 
 
 
 <div id="what-is-netsem-v0.5.0-and-what-does-it-do" class="section level2">
 <h2>What is netSEM v0.5.0 and what does it do?</h2>
 <p>The R package ‘netSEM v0.5.0’ conducts a network statistical analysis (network structural equation modeling) on a dataframe of coincident observations of multiple continuous variables. This analysis builds a pathway model by exploring a pool of domain knowledge guided candidate statistical causal relationships between each of the variable pairs, selecting the ‘best fit’ on the basis of the goodness-of-fit statistic, such as adjusted r-squared value which measures how successful the fit is in explaining the variation of the data.</p>
-<p>The netSEM methodology is motivated by the analysis of systems that are experiencing degradation of some performance characteristic under exposure to a particular stressor which is considered as exagenous variable. In addition to the direct relation between the exagenous variables and the endegenous variable, netSEM investigates protential connections between them through other covariates.</p>
-<p>To this goal, variables are separated into the categories of ‘Exagenous’ and ‘Endegenous’. Relationships exceeding a specified criteria are sought backwards from the main endegenous variable, through the intermediate variables which are considered as exogenous variable, then back to the last exagenous variable. The intermediate variables usually has the well known “feedback loop” behaviour, as they occure as exagenous variables in some equations and endegenous variables in other equations, thus the nonrecursive case is carefully handled.</p>
+<p>The netSEM methodology is motivated by the analysis of systems that are experiencing degradation of some performance characteristic under exposure to a particular stressor which is considered as exogenous variable. In addition to the direct relation between the exogenous variables and the endogenous variable, netSEM investigates potential connections between them through other covariates.</p>
+<p>To this goal, variables are separated into the categories of ‘Exogenous’ and ‘Endogenous’. Relationships exceeding a specified criteria are sought backwards from the main endogenous variable, through the intermediate variables which are considered as exogenous variable, then back to the last exogenous variable. The intermediate variables usually has the well known “feedback loop” behaviour, as they occur as exogenous variables in some equations and endogenous variables in other equations, thus the nonrecursive case is carefully handled.</p>
 <p>The resulting relationship diagram can be used to generate insight into the pathways of the system under observation. By identifying sequences of strong relationships that match well to prior domain knowledge, this pathways can be indicated which are good candidates to address for the improvement of the performance characteristics.</p>
 </div>
 <div id="how-does-netsem-v0.5.0-work" class="section level2">
 <h2>How does netSEM v0.5.0 work?</h2>
-<p>The R package ‘netSEM v0.5.0’ analyzes a dataframe including a column as a main endegenous variable and all other columns as exagenous variables. It is also of interest to mention that sgSEM provides a measurement statistical model for the most important relationships in the SEM senario, which is the “Nonrecuresive Relationships” where the exagenous variables can be occured as endegenous variables. In the current version all variables are required to be continuous.</p>
-<p>The function ‘netSEMm()’ takes this dataframe as the main input, along with optional arguments specifying the column names of the exagenouse and endegenous variables.</p>
-<p>Starting with the main endegenous variable to the last exagenous variable through the intermediate variables which are considered as exogenous variable, where the nonrecuresive relationships usually occure. For each two variables “pairwise” data are fit with each of the following six functional forms that appear most frequently in time domain science: simple linear regression, quadratic regression, simple quadratic regression, exponential regression, logarithmic regression and change point regression. The ‘best’ of these functional forms is chosen on the specific criterion of the adjusted r-squared value.</p>
+<p>The R package ‘netSEM v0.5.0’ analyzes a data frame including a column as a main endogenous variable and all other columns as exogenous variables. It is also of interest to mention that netSEM provides a measurement statistical model for the most important relationships in the SEM scenario, which is the “Nonrecuresive Relationships” where the exogenous variables can be occurred as endogenous variables. In the current version all variables are required to be continuous.</p>
+<p>The function ‘netSEMm()’ takes this dataframe as the main input, along with optional arguments specifying the column names of the exogenous and endogenous variables.</p>
+<p>Starting with the main endogenous variable to the last exogenous variable through the intermediate variables which are considered as exogenous variable, where the nonrecuresive relationships usually occur. For each two variables “pairwise” data are fit with each of the following six functional forms that appear most frequently in time domain science: simple linear regression, quadratic regression, simple quadratic regression, exponential regression, logarithmic regression and change point regression. The ‘best’ of these functional forms is chosen on the specific criterion of the adjusted r-squared value.</p>
 <p>The ‘netSEMm()’ function outputs an R object featuring a ‘plot()’ method that generates a flow chart style diagram, detailing the relevant characteristics of the uncovered relationships between variables.</p>
 </div>
 <div id="install-and-load-the-package" class="section level2">

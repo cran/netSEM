@@ -10,7 +10,7 @@ Description: The network structural equation modeling conducts a network statist
     Award Agreement No. 60220829-51077-T. 
     [1] Bruckman, Laura S., Nicholas R. Wheeler, Junheng Ma, Ethan Wang, Carl K. Wang, Ivan Chou, 
     Jiayang Sun, and Roger H. French. (2013) <doi:10.1109/ACCESS.2013.2267611>.
-Version: 0.5.0
+Version: 0.5.1
 Authors@R: c(person("Wei-Heng", "Huang", email="wxh272@case.edu", 
                     role=c("aut","cre"), comment = c(ORCID = "0000-0002-6609-4981")),
             person("Nicholas", "Wheeler", email="nrw16@case.edu", 
@@ -21,6 +21,8 @@ Authors@R: c(person("Wei-Heng", "Huang", email="wxh272@case.edu",
                     role=c("aut"), comment = c(ORCID = "0000-0003-1696-0228")),
             person("Wenyu", "Du", email="wxd97@case.edu", 
                     role=c("aut"), comment = c(ORCID = "0000-0002-8672-9104")),
+            person("Amit K.", "Verma", email="aak126@case.edu", 
+                    role=c("aut"), comment = c(ORCID = "0000-0003-1580-3001")),
             person("Abdulkerim", "Gok", email="axg515@case.edu", 
                     role=c("aut"), comment = c(ORCID = "0000-0003-3433-7106")),
             person("Devin", "Gordon", email="dag109@case.edu", 
@@ -37,6 +39,8 @@ Authors@R: c(person("Wei-Heng", "Huang", email="wxh272@case.edu",
                     role=c("ctb"), comment = c(ORCID = "0000-0003-2361-2846")),
             person("Jennifer", "Braid", email="jlb269@case.edu", 
                     role=c("ctb"), comment = c(ORCID = "0000-0002-0677-7756")),
+            person("Jennifer", "Carter", email="jwc137@case.edu", 
+                    role=c("ctb"), comment = c(ORCID = "0000-0001-6702-729X")),        
             person("Laura", "Bruckman", email="lsh41@case.edu", 
                     role=c("aut"), comment = c(ORCID = "0000-0003-1271-1072")),
             person("Roger", "French", email="rxf131@case.edu", 
@@ -52,12 +56,13 @@ Suggests: rmarkdown, testthat
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2018-06-10 22:22:21 UTC; setup
+Packaged: 2018-11-28 16:23:46 UTC; setup
 Author: Wei-Heng Huang [aut, cre] (<https://orcid.org/0000-0002-6609-4981>),
   Nicholas Wheeler [aut] (<https://orcid.org/0000-0003-2248-8919>),
   Addison Klinke [aut] (<https://orcid.org/0000-0002-6985-7657>),
   Yifan Xu [aut] (<https://orcid.org/0000-0003-1696-0228>),
   Wenyu Du [aut] (<https://orcid.org/0000-0002-8672-9104>),
+  Amit K. Verma [aut] (<https://orcid.org/0000-0003-1580-3001>),
   Abdulkerim Gok [aut] (<https://orcid.org/0000-0003-3433-7106>),
   Devin Gordon [ctb] (<https://orcid.org/0000-0002-5919-0422>),
   Yu Wang [ctb] (<https://orcid.org/0000-0003-1353-2578>),
@@ -66,8 +71,9 @@ Author: Wei-Heng Huang [aut, cre] (<https://orcid.org/0000-0002-6609-4981>),
   Justin Fada [ctb] (<https://orcid.org/0000-0002-0029-5051>),
   Xuan Ma [ctb] (<https://orcid.org/0000-0003-2361-2846>),
   Jennifer Braid [ctb] (<https://orcid.org/0000-0002-0677-7756>),
+  Jennifer Carter [ctb] (<https://orcid.org/0000-0001-6702-729X>),
   Laura Bruckman [aut] (<https://orcid.org/0000-0003-1271-1072>),
   Roger French [aut, cph] (<https://orcid.org/0000-0002-6162-0532>)
 Maintainer: Wei-Heng Huang <wxh272@case.edu>
 Repository: CRAN
-Date/Publication: 2018-06-12 10:33:50 UTC
+Date/Publication: 2018-11-28 17:00:03 UTC

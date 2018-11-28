@@ -77,5 +77,3 @@ Acknowledgment
 --------------------------
 This material is based upon work supported by the Department of Energy, Office of Energy Efficiency and Renewable Energy (EERE), under Award Number DE-EE-007143.
 
-
-
