@@ -7,7 +7,7 @@
 path(x, from, to, round = 3)
 }
 \arguments{
-\item{x}{object of class "netSEM", which is the return value of function \code{netSEMm}.}
+\item{x}{object of class "netSEM", which is the return value of function \code{netSEMp1}.}
 
 \item{from}{character string. Name of the predictor.}
 
@@ -26,20 +26,22 @@ a list of the following items:
 Extract and display an equation of a pairwise path between two variables.
 }
 \details{
-Extract the "best" model between any two variables. The model name and the model equation are printed on screen. The model coefficients, as well as the model R object are also returned.
+Extract the "best" model from principle 1 between any two variables. 
+The model name and the model equation are printed on screen. 
+The model coefficients, as well as the model R object are also returned.
 }
 \examples{
-##' ## Load the sample acrylic data set
+## Load the sample acrylic data set
 data(acrylic)
 
-## Run netSEM principle three
-ans <- netSEMm(acrylic)
+# Run netSEM principle one
+ans <- netSEMp1(acrylic)
 
-## Extract relations between IrradTot and IAD2
-cf <- path(ans,from ="IAD2",to="IrradTot")
+# Extract relations between IrradTot and IAD2
+cf <- path(ans, from = "IrradTot", to = "IAD2")
 print(cf)
 
 }
 \seealso{
-\link[netSEM]{netSEMm}
+\link[netSEM]{netSEMp1}
 }

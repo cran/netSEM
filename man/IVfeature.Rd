@@ -4,7 +4,8 @@
 \name{IVfeature}
 \alias{IVfeature}
 \title{IV features data}
-\format{A data frame with 20 rows and 9 variables:
+\format{
+A data frame with 20 rows and 9 variables:
 \describe{
   \item{Pmp}{max power at the measurement step}
   \item{dy}{the exposure time after been converted into decimal year}
@@ -12,7 +13,8 @@
   \item{Imp}{current at max power}
   \item{Rs}{series resistance}
   \item{Voc}{open circuit voltage}
-}}
+}
+}
 \source{
 Solar Durability and Lifetime Extension (SDLE) Research Center, Case Western
 Reserve University
@@ -21,21 +23,17 @@ Reserve University
 data(IVfeature)
 }
 \description{
-The dataset is current-voltage(I-V) features data obtained by I-V features extracted 
-algorithm for the brand A modules under damp heat indoor accelerated test which is up 
-to 3000 hours. The measurement were taken every 500h. The raw data is provided by 
-SunEdison company. 
-The I-V features include max power(Pmp), short circuit current(Isc), current at max 
-power(Imp), fill factor(FF), series resistance(Rs), shunt resistance(Rsh), open circuit 
-voltage(Voc), voltage at max power(Vmp). Rsh is too noisy to contain for modeling. 
-After checking the correlation between Isc, Imp, Voc, Vmp, FF, Rs. FF, Rs, Vmp are 
-highly correlated, so we randomly select one to be contained in the model. Here we 
-choose Isc, Imp, Rs and Voc to be contained in the model and these four I-V features 
-show no indication of high correlation. The trend of the I-V features are related 
-with the mechanims of PV degradation. The variable 'dy' is time that has been 
-converted into decimal year in which 1 means 1 year.
-We would use this dataet to buit <S|M|R> model with time as stressor, four I-V 
-features as mechanisms and max power as reponse.
+The dataset contains current-voltage (I-V) curve scans and the I-V features data obtained by the I-V features extraction algorithm of the ddiv R package.
+These extracted I-V features are for the brand A photovoltaic (PV) modules exposed to damp heat indoor accelerated test conditions of 85 degrees C and 85% relative humidity (RH) for up to 3000 hours exposure time. 
+The measurement step-wise through time at 500 hour time intervals. 
+The raw data is provided by the SunEdison company. 
+The I-V features include max power (Pmp), short circuit current (Isc), current at max power(Imp), fill factor (FF), series resistance (Rs), shunt resistance (Rsh), open circuit voltage (Voc), and voltage at max power (Vmp). 
+The shunt resistance (Rsh) is too noisy to use for netSEM modeling. 
+After checking the correlation between Isc, Imp, Voc, Vmp, FF, Rs. FF, Rs, Vmp are highly correlated, so we randomly select one to be contained in the model. 
+Here we choose Isc, Imp, Rs and Voc to be contained in the model and these four I-V features show no indication of high correlation. 
+The trend of the I-V features are related to the mechanisms of PV degradation. 
+The variable 'dy' is time that has been converted into decimal year in which 1 means 1 year.
+We would use this dataet to buit <S|M|R> models with time as the stressor, and four I-V features as tracking variables of the degradation mechanisms and max power as the reponse.
 }
 \author{
 Jiqi Liu, Alan Curran, Justin S. Fada, Xuan Ma, Wei-Heng Huang, Jennifer L. Braid, Roger H. French

@@ -1,23 +1,22 @@
-## ---- message=FALSE, eval=FALSE------------------------------------------
+## ---- message=FALSE, eval=FALSE-----------------------------------------------
 #  
-#  ## Load the PET data set
+#  ## Load the metal data set
 #  data(metal)
+#  ?metal
 #  
-#  ## Run netSEM
-#  ans <- netSEMm(metal, str = TRUE)
+#  ## Run netSEMp1 model
+#  ans1 <- netSEMp1(metal, str = TRUE)
+#  ## Plot the network model for principle 1
+#  plot(ans1, cutoff = c(0.3,0.6,0.9))
 #  
-#  ## Subset dataset with three cutoff
-#  res <- subsetData(ans,cutoff=c(0.3,0.6,0.8))
-#  
-#  ## Plot the network model
-#  plot(ans,res)
-#  
-#  
-#  Network diagram for data
-#  --------------------------
-#  "Hardness" is the endogenous and all other variables are considered as exogenous.
-#  
+#  ## Run netSEMp2 model
+#  ans2 <- netSEMp2(metal, str = TRUE, criterion = "AIC")
+#  ## Plot the network model for principle 2
+#  plot(ans2, cutoff = c(0.3,0.6,0.9))
 
-## ---- out.width="675px", echo=FALSE--------------------------------------
-knitr::include_graphics("metal.png")
+## ---- out.width="675px", echo=FALSE, fig.cap="Metal netSEMp1 model"-----------
+knitr::include_graphics("metal1.png")
+
+## ---- out.width="675px", echo=FALSE, fig.cap="Metal netSEMp2 model"-----------
+knitr::include_graphics("metal2.png")
 

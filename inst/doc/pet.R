@@ -1,27 +1,26 @@
-## ---- message=FALSE, eval=FALSE------------------------------------------
+## ---- message=FALSE, eval=FALSE-----------------------------------------------
 #  
 #  ## Load the PET data set
 #  data(pet)
+#  ?pet
 #  
-#  ## Run netSEM
-#  ans <- netSEMm(pet)
+#  ## Run netSEMp1 model
+#  ans1 <- netSEMp1(pet)
+#  ## Plot the network model for principle 1
+#  plot(ans1, cutoff = c(0.3,0.6,0.9))
 #  
-#  ## Subset dataset with three cutoff
-#  res <- subsetData(ans,cutoff=c(0.3,0.6,0.8))
-#  
-#  ## Plot the network model
-#  plot(ans,res)
-#  
-#  
-#  Network diagram for data
-#  --------------------------
-#  "YI" is the endogenous and all other variables are considered as exogenous.
-#  
+#  ## Run netSEMp2 model
+#  ans2 <- netSEMp2(pet)
+#  ## Plot the network model for principle 2
+#  plot(ans2, cutoff = c(0.3,0.6,0.9))
 
-## ---- out.width="675px", echo=FALSE--------------------------------------
-knitr::include_graphics("pet.png")
+## ---- out.width="675px", echo=FALSE, fig.cap="PET netSEMp1 model"-------------
+knitr::include_graphics("pet1.png")
 
-## ---- message=FALSE, eval=FALSE------------------------------------------
+## ---- out.width="675px", echo=FALSE, fig.cap="PET netSEMp2 model"-------------
+knitr::include_graphics("pet2.png")
+
+## ---- message=FALSE, eval=FALSE-----------------------------------------------
 #  # Use pathwayRMSE to examine errors of network paths
 #  pathwayRMSE(ans)
 

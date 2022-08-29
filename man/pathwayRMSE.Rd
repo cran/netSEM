@@ -17,17 +17,17 @@ pathwayRMSE(x, maxlen = 2, ...)
 A data frame of result. A summary of RMSE results for all of pathways.
 }
 \description{
-summarize root mean square error (RMSE) for direct and indrect pathway from netSEM result
+Summarize root mean square error (RMSE) for direct and indirect pathway from netSEMp1 result.
 }
 \details{
-pathwayRMSE gives a summary about RMSE
+pathwayRMSE gives a summary about RMSE.
 }
 \examples{
 data(acrylic)
-ans <- netSEMm(acrylic)
+ans <- netSEMp1(acrylic)
 pathwayRMSE(ans,maxlen=2)
 
 }
 \seealso{
-\link[netSEM]{netSEMm}, \link[netSEM]{pathwayPredict}
+\link[netSEM]{netSEMp1}, \link[netSEM]{pathwayPredict}
 }

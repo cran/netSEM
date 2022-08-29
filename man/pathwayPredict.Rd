@@ -7,7 +7,7 @@
 pathwayPredict(x, path, newdata = NULL)
 }
 \arguments{
-\item{x}{An object of class "netSEM", the returned list from \code{netSEMm}.}
+\item{x}{An object of class "netSEM", the returned list from \code{netSEMp1}.}
 
 \item{path}{A string form for a pathway, the default output format from \link[netSEM]{pathwayRMSE}.}
 
@@ -24,17 +24,17 @@ the second is the predicted response values.
 }
 }
 \description{
-Predict response variable values along a pathway
+Predict response variable values along a pathway in principle 1.
 }
 \examples{
 # Load the sample acrylic data set
 data(acrylic)
-ans <- netSEMm(acrylic)
+ans <- netSEMp1(acrylic)
 paths <- pathwayRMSE(ans,maxlen=3)
 response <- pathwayPredict(ans, paths[10,2])
 response
 
 }
 \seealso{
-\link[netSEM]{pathwayRMSE}, \link[netSEM]{netSEMm}
+\link[netSEM]{pathwayRMSE}, \link[netSEM]{netSEMp1}
 }

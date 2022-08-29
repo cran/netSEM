@@ -11,7 +11,11 @@ vignette: >
 
 Data Description
 -----------------------------------
-The data set is a study of photolysis and hydrolysis of poly(ethylene-terephthalate) films that contain an ultraviolet stabilizer additive. In this work, polymeric samples were exposed to UV light and moisture according to ASTM G-154 Cycle 4 standard accelerated weathering conditions. Resulting optical chemical changes were determined through optical and infrared (IR) spectroscopy. *Time* is the main exagenous variable and *YI* (yellowness index) is the endogenous variable (response). The other columns in the data set (*AbsEdge*, *UVStabBleaching*, *Crystallization*, and *ChainScission*)  are values extracted from optical and IR absorbance spectra as single metrics and used as intermediate unit level endogenous (response) variables in the netSEM analysis.
+The data set is a study of photolysis and hydrolysis of poly(ethylene-terephthalate) films that contain an ultraviolet stabilizer additive. 
+In this work, polymeric samples were exposed to UV light and moisture according to ASTM G-154 Cycle 4 standard accelerated weathering conditions. 
+Resulting optical chemical changes were determined through optical and infrared (IR) spectroscopy. 
+*Time* is the main exogenous stressor variable and *YI* (yellowness index) is the endogenous response variable. 
+The other columns in the data set (*AbsEdge*, *UVStabBleaching*, *Crystallization*, and *ChainScission*) are values extracted from optical and IR absorbance spectra as single metrics and used as intermediate unit level endogenous mechanistic variables in the netSEM analysis.
 
 
 Load data and run code to build netSEM 
@@ -20,29 +24,35 @@ Load data and run code to build netSEM
 
 ## Load the PET data set
 data(pet)
+?pet
 
-## Run netSEM
-ans <- netSEMm(pet)
+## Run netSEMp1 model
+ans1 <- netSEMp1(pet)
+## Plot the network model for principle 1 
+plot(ans1, cutoff = c(0.3,0.6,0.9))
 
-## Subset dataset with three cutoff
-res <- subsetData(ans,cutoff=c(0.3,0.6,0.8))
-
-## Plot the network model 
-plot(ans,res)
-
+## Run netSEMp2 model
+ans2 <- netSEMp2(pet)
+## Plot the network model for principle 2 
+plot(ans2, cutoff = c(0.3,0.6,0.9))
+```
 
 Network diagram for data
 --------------------------
 "YI" is the endogenous and all other variables are considered as exogenous.  
   
-```{r, out.width="675px", echo=FALSE}
-knitr::include_graphics("pet.png")
+```{r, out.width="675px", echo=FALSE, fig.cap="PET netSEMp1 model"}
+knitr::include_graphics("pet1.png")
+```
+
+```{r, out.width="675px", echo=FALSE, fig.cap="PET netSEMp2 model"}
+knitr::include_graphics("pet2.png")
 ```
 
 Discussion
 -----------------------------------
 The network diagram shows a strong quadratic relationship between Time and YI.
-This relationship is useful, as it gives an expected temporal evolution of the property of interest.
+This relationship is useful, as it gives an expected temporal evolution of the property of interest. 
 To understand, which mechanisms contribute most to the yellowing of PET, one can examine the inner portion of the network diagram.
 Time shows strong change-point relationships with FundAbsEdge, UVStabBleaching, and Crystallization, all of which have relatively strong change-point relationships with YI.
 The pathway predict function will help find which pathway describes the mechanistic relationship from Time to YI with lowest error.
@@ -52,7 +62,7 @@ The pathway predict function will help find which pathway describes the mechanis
 pathwayRMSE(ans)
 ```
 
-Pathways with 4 mechanistic variables have RMSE values above 1, which are relatively high in this case.
+Pathways with 4 mechanistic variables have RMSE values above 1, which are relatively high in this case. 
 After examining all other pathways with 1-3 mechanistic variables, the direct path Time-->YI is excluded because it will most always have lowest error, one can select the path Time-->UVStabBleaching-->FundAbsEdge-->Crystallization-->YI as a good explanatory path.
 This path has relatively low error (0.2707) and uses a large amount of the data (3 of the 4 mechanistic variables).
 Interpreation of this model gives that with time under UV exposure at elevated temperature and cyclic water spray, the UV stabilizer included in PET bleaches away, which can be detected through changes in the fundamental absorption edge in UV-Vis spectroscopy as the UV absorbing properties from the stabilized disappear from the spectra.
