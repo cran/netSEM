@@ -1,3 +1,9 @@
+# netSEM 0.6.1
+
+## Changes
+
+Changed acknowledgements part in Description. No other changes to function scripts.
+
 # netSEM 0.6.0
 
 ## New Features
