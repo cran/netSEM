@@ -38,6 +38,7 @@ Plot netSEMp2 result
 plot.netSEMp2 plots a network structural equation model diagram, fitted under principle 2, based on best functional form for each selected pairwise variable.
 }
 \examples{
+\dontrun{
 # Load acrylic data set
 data(acrylic)
 
@@ -49,7 +50,6 @@ ans2_BIC <- netSEMp2(acrylic, criterion = "BIC")
 plot(ans2, cutoff = c(0.3,0.6,0.8))
 plot(ans2_BIC , cutoff = c(0.3,0.6,0.8))
 
-\dontrun{
 # Drop Relationship lower than minimum cutoff
 plot(ans2, cutoff = c(0.3,0.6,0.8), style = FALSE)
 

@@ -1,3 +1,9 @@
+# netSEM 0.6.2
+
+Modified package level documentation to be consistent with new method as per request.
+
+Updated author list: Added new contributors.
+
 # netSEM 0.6.1
 
 ## Changes

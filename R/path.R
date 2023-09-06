@@ -18,6 +18,7 @@
 ##' @export
 ##' @seealso \link[netSEM]{netSEMp1}
 ##' @examples
+##' \dontrun{
 ##' ## Load the sample acrylic data set
 ##' data(acrylic)
 ##'
@@ -27,7 +28,7 @@
 ##' # Extract relations between IrradTot and IAD2
 ##' cf <- path(ans, from = "IrradTot", to = "IAD2")
 ##' print(cf)
-##' 
+##' }
 
 path <- function(x, from, to, round = 3) {
   ###------------------

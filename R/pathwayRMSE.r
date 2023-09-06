@@ -14,10 +14,11 @@
 ##' @seealso \link[netSEM]{netSEMp1}, \link[netSEM]{pathwayPredict}
 ##'
 ##' @examples
+##' \dontrun{
 ##' data(acrylic)
 ##' ans <- netSEMp1(acrylic)
 ##' pathwayRMSE(ans,maxlen=2)
-##' 
+##' }
 
 
 pathwayRMSE <- function(x, maxlen=2, ... ) { 

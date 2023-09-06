@@ -31,6 +31,7 @@ The model name and the model equation are printed on screen.
 The model coefficients, as well as the model R object are also returned.
 }
 \examples{
+\dontrun{
 ## Load the sample acrylic data set
 data(acrylic)
 
@@ -40,7 +41,7 @@ ans <- netSEMp1(acrylic)
 # Extract relations between IrradTot and IAD2
 cf <- path(ans, from = "IrradTot", to = "IAD2")
 print(cf)
-
+}
 }
 \seealso{
 \link[netSEM]{netSEMp1}

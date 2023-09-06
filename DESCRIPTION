@@ -15,7 +15,7 @@ Description: The network structural equation modeling conducts a network
     [1] Bruckman, Laura S., Nicholas R. Wheeler, Junheng Ma, Ethan Wang, 
     Carl K. Wang, Ivan Chou, Jiayang Sun, and Roger H. French. (2013) 
     <doi:10.1109/ACCESS.2013.2267611>.
-Version: 0.6.1
+Version: 0.6.2
 Authors@R: c(person("Wei-Heng", "Huang", email="wxh272@case.edu", 
                     role=c("aut"), comment = c(ORCID = "0000-0002-6609-4981")),
             person("Nicholas R.", "Wheeler", email="nrw16@case.edu", 
@@ -38,8 +38,16 @@ Authors@R: c(person("Wei-Heng", "Huang", email="wxh272@case.edu",
                     role=c("ctb"), comment = c(ORCID = "0000-0002-9114-4602")),
             person("HeinHtet", "Aung", email="hxh483@case.edu", 
                     role=c("ctb"), comment = c(ORCID = "0000-0002-8191-8213")),
-            person("Leean", "Jo", email="yxj414@case.edu", 
-                    role=c("ctb"), comment = c(ORCID = "0000-0001-7026-3779")),        
+            person("Yeajin", "Jo", email="yxj414@case.edu", 
+                    role=c("ctb"), comment = c(ORCID = "0000-0001-7026-3779")),
+            person("Xuanji", "Yu", email = "xxy530@case.edu",
+                    role = c("ctb"), comment = c(ORCID = "0000-0003-1967-3769")),
+            person("Kemal", "Ozdemirli", email = "kxo146@case.edu",
+                    role = c("ctb"), comment = c()),
+            person("Jonathan", "Gordon", email = "jgordon5@bowdoin.edu",
+                    role = c("ctb"), comment = c(ORCID = "0009-0007-5958-7386")),
+            person("Jayvic Cristian", "Jimenez", email="jxj440@case.edu", 
+                    role=c("ctb"), comment = c(ORCID = "0000-0002-2342-5648")),
             person("Jiqi", "Liu", email="jxl1763@case.edu", 
                     role=c("ctb"), comment = c(ORCID = "0000-0003-2016-4160")),
             person("Alan J.", "Curran", email="ajc269@case.edu", 
@@ -66,10 +74,10 @@ LazyData: true
 Encoding: UTF-8
 Suggests: rmarkdown, testthat (>= 3.0.0)
 VignetteBuilder: knitr
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2022-11-02 14:28:01 UTC; hxh483
+Packaged: 2023-09-06 14:46:15 UTC; hxh483
 Author: Wei-Heng Huang [aut] (<https://orcid.org/0000-0002-6609-4981>),
   Nicholas R. Wheeler [aut] (<https://orcid.org/0000-0003-2248-8919>),
   Addison G. Klinke [aut] (<https://orcid.org/0000-0002-6985-7657>),
@@ -81,7 +89,11 @@ Author: Wei-Heng Huang [aut] (<https://orcid.org/0000-0002-6609-4981>),
   Yu Wang [ctb] (<https://orcid.org/0000-0003-1353-2578>),
   Sameera Nalin Venkat [ctb] (<https://orcid.org/0000-0002-9114-4602>),
   HeinHtet Aung [ctb] (<https://orcid.org/0000-0002-8191-8213>),
-  Leean Jo [ctb] (<https://orcid.org/0000-0001-7026-3779>),
+  Yeajin Jo [ctb] (<https://orcid.org/0000-0001-7026-3779>),
+  Xuanji Yu [ctb] (<https://orcid.org/0000-0003-1967-3769>),
+  Kemal Ozdemirli [ctb],
+  Jonathan Gordon [ctb] (<https://orcid.org/0009-0007-5958-7386>),
+  Jayvic Cristian Jimenez [ctb] (<https://orcid.org/0000-0002-2342-5648>),
   Jiqi Liu [ctb] (<https://orcid.org/0000-0003-2016-4160>),
   Alan J. Curran [ctb] (<https://orcid.org/0000-0002-4505-8359>),
   Justin S. Fada [ctb] (<https://orcid.org/0000-0002-0029-5051>),
@@ -92,4 +104,4 @@ Author: Wei-Heng Huang [aut] (<https://orcid.org/0000-0002-6609-4981>),
   Roger H. French [aut, cph] (<https://orcid.org/0000-0002-6162-0532>)
 Maintainer: Laura S. Bruckman <lsh41@case.edu>
 Repository: CRAN
-Date/Publication: 2022-11-02 16:17:47 UTC
+Date/Publication: 2023-09-06 15:50:11 UTC

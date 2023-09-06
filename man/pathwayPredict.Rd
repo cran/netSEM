@@ -27,13 +27,14 @@ the second is the predicted response values.
 Predict response variable values along a pathway in principle 1.
 }
 \examples{
+\dontrun{
 # Load the sample acrylic data set
 data(acrylic)
 ans <- netSEMp1(acrylic)
 paths <- pathwayRMSE(ans,maxlen=3)
 response <- pathwayPredict(ans, paths[10,2])
 response
-
+}
 }
 \seealso{
 \link[netSEM]{pathwayRMSE}, \link[netSEM]{netSEMp1}

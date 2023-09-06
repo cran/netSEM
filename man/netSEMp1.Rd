@@ -56,9 +56,11 @@ For example, in the quadratic functional form y ~ b0 + b1x + b2x^2, the three P-
 If there are less than 3 coefficients to estimate, the extra P-value field is filled with NA's.
 }
 \examples{
+\dontrun{
 ## Load the sample acrylic data set
 data(acrylic)
 
 ## Run netSEM
 ans <- netSEMp1(acrylic)
+}
 }

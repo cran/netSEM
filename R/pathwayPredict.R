@@ -19,13 +19,14 @@
 ##' @export
 ##' 
 ##' @examples
+##' \dontrun{
 ##' # Load the sample acrylic data set
 ##' data(acrylic)
 ##' ans <- netSEMp1(acrylic)
 ##' paths <- pathwayRMSE(ans,maxlen=3)
 ##' response <- pathwayPredict(ans, paths[10,2])
 ##' response
-##' 
+##' }
 
 pathwayPredict <- function(x, path, newdata = NULL) {
   

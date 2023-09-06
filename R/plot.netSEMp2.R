@@ -26,6 +26,7 @@
 ##' @seealso \link[netSEM]{netSEMp2}
 ##'
 ##' @examples
+##' \dontrun{
 ##' # Load acrylic data set
 ##' data(acrylic)
 ##' 
@@ -37,7 +38,6 @@
 ##' plot(ans2, cutoff = c(0.3,0.6,0.8))
 ##' plot(ans2_BIC , cutoff = c(0.3,0.6,0.8))
 ##' 
-##' \dontrun{
 ##' # Drop Relationship lower than minimum cutoff
 ##' plot(ans2, cutoff = c(0.3,0.6,0.8), style = FALSE)
 ##' 

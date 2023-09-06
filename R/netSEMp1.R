@@ -44,11 +44,13 @@
 ##' @export
 ##'
 ##' @examples
+##' \dontrun{
 ##' ## Load the sample acrylic data set
 ##' data(acrylic)
 ##'
 ##' ## Run netSEM
 ##' ans <- netSEMp1(acrylic)
+##' }
 
 netSEMp1 <- function(x,
                     exogenous = NULL,
@@ -63,6 +65,9 @@ netSEMp1 <- function(x,
   #     [stressor, main response, unit level variables]  (the old style ordering)
   #   Which the original sgSEM code expects, and was hard coded to accommodate
   # Note that defining the locations of exogenous and endogenous stressors explicitly may cause problems
+
+
+####### Index Dependent Data Frame Reordering ###########  
   if (missing(exogenous) & missing(endogenous)) {
     x <- x[, c(2, 1, 3:ncol(x))]
   }
@@ -112,7 +117,7 @@ netSEMp1 <- function(x,
   } else {
     endogenous <- names(x)[2]
   }
-
+#####################################################################
   #cat("\nExogenous is:",exogenous)
   #cat("\nEndogenous is:",endogenous,"\n")
 

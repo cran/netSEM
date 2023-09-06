@@ -23,10 +23,11 @@ Summarize root mean square error (RMSE) for direct and indirect pathway from net
 pathwayRMSE gives a summary about RMSE.
 }
 \examples{
+\dontrun{
 data(acrylic)
 ans <- netSEMp1(acrylic)
 pathwayRMSE(ans,maxlen=2)
-
+}
 }
 \seealso{
 \link[netSEM]{netSEMp1}, \link[netSEM]{pathwayPredict}
