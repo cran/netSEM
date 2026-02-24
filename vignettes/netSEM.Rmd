@@ -30,10 +30,10 @@ And these relationships are guided by domain knowledge, while also being data-dr
 By identifying sequences of strong relationships that match well to prior domain knowledge, these pathways can be indicated which are good candidates to address for the improvement of the performance characteristics.
 
 
-How does netSEM v0.6.2 work?
+How does netSEM v0.7.0 work?
 ---------------------------
 
-The R package 'netSEM v0.6.2' analyzes a data frame including a column as a main exogeneous variable and all other columns as endogenous variables. 
+The R package 'netSEM v0.7.0' analyzes a data frame including a column as a main exogeneous variable and all other columns as endogenous variables. 
 It is also of interest to mention that netSEM provides a measurement statistical model for the most important relationships in the SEM scenario, which is the "non-recursive Relationships" where the exogenous variables can occur as endogenous variables.  
 In the current version all variables are required to be continuous.
 
@@ -49,9 +49,9 @@ The 'netSEMp2()' function outputs an S3 R object that includes equations relatin
 Install and load the package
 --------------------------
 
-After downloading the package file "netSEM_0.6.2.tar.gz", put it in your preferred working directory and run both of the following lines:
+After downloading the package file "netSEM_0.7.0.tar.gz", put it in your preferred working directory and run both of the following lines:
 ```{r, eval=FALSE}
-install.packages("netSEM_0.6.0.tar.gz", repos = NULL, type = "source")
+install.packages("netSEM_0.7.0.tar.gz", repos = NULL, type = "source")
 library(netSEM)
 ```
 

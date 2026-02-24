@@ -4,13 +4,7 @@
 \alias{netSEMp2}
 \title{network Structural Equation Modelling (netSEM) - Principle 2}
 \usage{
-netSEMp2(
-  x,
-  exogenous = NULL,
-  endogenous = NULL,
-  str = FALSE,
-  criterion = "AIC"
-)
+netSEMp2(x, exogenous, endogenous, str = FALSE, criterion = "AIC")
 }
 \arguments{
 \item{x}{A dataframe. By default it considers all columns as exogenous variables, except the first column which stores the system endogenous variable.}
@@ -27,8 +21,9 @@ netSEMp2(
 A list of the following items:
 
 \itemize{
-\item "res.print": A matrix. For each row, first column is the endogenous variable, second column is the exogenous variable, 
-the other columns show corresponding summary information.
+\item "data":
+\item "res.print": A dataframe.
+\item "res.model": A model object.
 }
 }
 \description{
@@ -41,25 +36,14 @@ Data is analysed first using Principle 1 to find the best models. If needed, tra
 }
 \examples{
 \dontrun{
-# Using AIC criterion
+## Load the sample acrylic data set
 data(acrylic)
-ans <- netSEMp2(acrylic, criterion = "AIC")
 
-# Using AIC criterion
-ans <- netSEMp2(acrylic, criterion = "BIC")
+## Using AIC criterion
+ans <- netSEMp2(acrylic, "IrradTot", "YI")
 
-
-# Using simulated data
- s <- runif(100,0,2)
-m3 <- 1+2.5*s+rnorm(100,0,0.5)
-m1 <- runif(100,1,4)
-m2 <- -1-m1+m3+rnorm(100,0,0.3)
- y <- 2+2*exp(m1/3)+(m2-1)^2-m3+rnorm(100,0,0.5)
-# Check the pairwise plot 
-sim <- data.frame(cbind(y,s,m1,m2,m3))
-pairs(sim)
-ans <- netSEMp2(sim)
-
+## Using BIC criterion
+ans <- netSEMp2(acrylic, "IrradTot", "YI", criterion = "BIC")
 }
 }
 \seealso{

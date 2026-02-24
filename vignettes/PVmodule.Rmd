@@ -27,16 +27,15 @@ Load data and run code to build netSEM
 data(PVmodule)
 
 ## Run netSEMp1 model
-ans1 <- netSEMp1(PVmodule)
+ans1 <- netSEMp1(PVmodule, exogenous = "Time", endogenous = "Pmax")
 #plot network model with latent variable
 plot(ans1, style = F, cutoff = c(0.3, 0.6, 0.9), 
      latent=c('EVA_hyd', 'Hac'))
 
 ## Run netSEMp2 model
-ans2 <- netSEMp2(PVmodule)
+ans2 <- netSEMp2(PVmodule, exogenous = "Time", endogenous = "Pmax")
 ## Plot the network model for principle 2 
-plot(ans2, style = F, cutoff = c(0.3, 0.6, 0.9), 
-     latent=c('EVA_hyd', 'Hac'))
+plot(ans2)
 ```
 
 

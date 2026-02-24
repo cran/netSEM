@@ -12,7 +12,7 @@
 
 <meta name="author" content="Wei-Heng Huang, Laura S. Bruckman, Roger H. French" />
 
-<meta name="date" content="2023-09-06" />
+<meta name="date" content="2026-02-24" />
 
 <title>netSEM v0.6.2</title>
 
@@ -51,7 +51,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -62,7 +62,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -341,7 +341,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">netSEM v0.6.2</h1>
 <h4 class="author">Wei-Heng Huang, Laura S. Bruckman, Roger H.
 French</h4>
-<h4 class="date">2023-09-06</h4>
+<h4 class="date">2026-02-24</h4>
 
 
 
@@ -387,9 +387,9 @@ strong relationships that match well to prior domain knowledge, these
 pathways can be indicated which are good candidates to address for the
 improvement of the performance characteristics.</p>
 </div>
-<div id="how-does-netsem-v0.6.2-work" class="section level2">
-<h2>How does netSEM v0.6.2 work?</h2>
-<p>The R package ‘netSEM v0.6.2’ analyzes a data frame including a
+<div id="how-does-netsem-v0.7.0-work" class="section level2">
+<h2>How does netSEM v0.7.0 work?</h2>
+<p>The R package ‘netSEM v0.7.0’ analyzes a data frame including a
 column as a main exogeneous variable and all other columns as endogenous
 variables. It is also of interest to mention that netSEM provides a
 measurement statistical model for the most important relationships in
@@ -418,10 +418,10 @@ adjusted R-squared values.</p>
 </div>
 <div id="install-and-load-the-package" class="section level2">
 <h2>Install and load the package</h2>
-<p>After downloading the package file “netSEM_0.6.2.tar.gz”, put it in
+<p>After downloading the package file “netSEM_0.7.0.tar.gz”, put it in
 your preferred working directory and run both of the following
 lines:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;netSEM_0.6.0.tar.gz&quot;</span>, <span class="at">repos =</span> <span class="cn">NULL</span>, <span class="at">type =</span> <span class="st">&quot;source&quot;</span>)</span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;netSEM_0.7.0.tar.gz&quot;</span>, <span class="at">repos =</span> <span class="cn">NULL</span>, <span class="at">type =</span> <span class="st">&quot;source&quot;</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(netSEM)</span></code></pre></div>
 </div>
 <div id="sources" class="section level2">

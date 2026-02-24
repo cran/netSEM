@@ -1,24 +1,18 @@
 ##' Plot netSEMp2 result
-##' plot.netSEMp2 plots a network structural equation model diagram, fitted under principle 2, based on best functional form for each selected pairwise variable.
+##' plot.netSEMp2 plots a structural equation network model diagram, fitted under principle 2, based on best functional form for each selected pairwise variable.
 ##' 
 ##' @title Plotting of netSEM diagram
-##' 
-##' @import DiagrammeRsvg
-##' @import magrittr
-##' @import svglite
-##' @import rsvg
-##' @import png
-##' @importFrom DiagrammeR grViz
 ##' 
 ##' @param x An object of class "netSEMp2", the returned list from \code{netSEMp2}.
 ##' @param cutoff A threshold value for adjusted R-squared. The maximum number of cutoff is 3.
 ##' @param latent The latent variable that corresponds to the mechanic variable. The default is NULL.
+##' @param title The title of the plot. Default value is "netSEMp2".
 ##' @param plot.save True/False, it saves the network diagram plot as png file. The default is false.
 ##' @param filename A character string naming a file to save as a png file.
 ##' @param style True/False, it plots the first interval in the network diagram with dotted weak line. The default is True.
 ##' @param ... A S3 generic/method consistency.
 ##' 
-##' @return An html style plot of multiple regression relationship pathway diagram between exogenous variables and an endogenous variable. 
+##' @return An html style plot of pairwise relationship pathway diagram between exogenous variables and an endogenous variable. 
 ##' Arrows show relationships between each variable with given statistical relations along the connection lines.
 ##' 
 ##' @export
@@ -31,55 +25,67 @@
 ##' data(acrylic)
 ##' 
 ##' # Build a netSEMp2 model
-##' ans2 <- netSEMp2(acrylic, criterion = "AIC")
-##' ans2_BIC <- netSEMp2(acrylic, criterion = "BIC")
+##' ans <- netSEMp2(acrylic, "IrradTot", "YI")
 ##' 
-##' # Plot the network model 
-##' plot(ans2, cutoff = c(0.3,0.6,0.8))
-##' plot(ans2_BIC , cutoff = c(0.3,0.6,0.8))
+##' # Plot the network model with a title
+##' plot(ans, cutoff = c(0.3,0.6,0.8), title = "Acrylic")
 ##' 
-##' # Drop Relationship lower than minimum cutoff
-##' plot(ans2, cutoff = c(0.3,0.6,0.8), style = FALSE)
-##' 
-##' # plot network model with latent argument labels
-##' plot(ans2, cutoff = c(0.3, 0.6, 0.8), 
-##'      latent = c('IAD1' = 'FundAbsEdge', 
-##'                 'IAD2' = 'UVStab', 
-##'                 'IAD2p' = 'UVStab', 
-##'                 'IAD3' = 'YelMet'))
-##' 
+##' \donttest{
 ##' # plot the network diagram and save file
-##' #plot(ans, cutoff = c(0.3,0.6,0.8), plot.save = TRUE, filename = "acrylic-netSEMp2"))
+##' plot(ans, cutoff = c(0.3,0.6,0.8), 
+##'      plot.save = TRUE, 
+##'      filename = "acrylic-netSEMp2")
+##' }
 ##' }
 
-plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = FALSE, 
+plot.netSEMp2 <- function(x, cutoff = NULL, latent = NULL, title = "netSEMp2", plot.save = FALSE, 
                           filename = NULL, style = TRUE, ...) {
- 
-  # Create empty data frames for storing information for each cutoff region --- 
+  
   rtp1 <- x$res.print
-
+  
   rtp1.a <- rtp1[-c(1:nrow(rtp1)),]
   rtp1.b <- rtp1[-c(1:nrow(rtp1)),]
   rtp1.c <- rtp1[-c(1:nrow(rtp1)),]
   rtp1.d <- rtp1[-c(1:nrow(rtp1)),]
   
-  # Set up Cutoff Regions -----------------------------------------------------
+  endogenous <- rtp1$endogenous[1]
+  exogenous <- rtp1$Variable[1]
+  
+  a <- x$data
+  
+  # When cutoff value is not specified, use the cutoff value generated from the <Stressor|Response>
+  if (is.null(cutoff) == TRUE) {
+    p1.result <- netSEMp1(a, exogenous, endogenous)
+    p1.x <- p1.result$bestModels
+    p1.model <- p1.result$allModels
+    
+    p1.exogenous <- p1.result$bestModels %>% filter(Var == exogenous & Resp == endogenous) %>% arrange(adj.r.squared)
+    adj_r <- p1.exogenous$adj.r.squared #response variable (<S|R>) with the greatest adjR^2
+    
+    cutoff <- c(adj_r)
+    
+  }
+  
+  ### set up cutoffs ############
   count <- length(cutoff)
-  ## Based on the number of cutoff, to separate different regions
-  ## Number of cutoff = 1, have two regions
+  ## based on the number of cutoff, to separate different regions
+  ## number of cutoff = 1, have two regions
   if (count == 1) {
     c1 <- cutoff[1]  
     rtp1.a <- rtp1[rtp1[, "GAdj-R2"] <  c1 , ]
     rtp1.b <- rtp1[rtp1[, "GAdj-R2"] >= c1 , ]
+    rtp1.c <- NULL
+    rtp1.d <- NULL
   }
-  ## Number of cutoff = 2, have three regions
+  ## number of cutoff = 2, have three regions
   if (count == 2) {
     c1 <- cutoff[1] ; c2 <- cutoff[2] 
     rtp1.a <- rtp1[rtp1[, "GAdj-R2"] < c1, ]
     rtp1.b <- rtp1[rtp1[, "GAdj-R2"] >= c1 & rtp1[, "GAdj-R2"] < c2, ]
     rtp1.c <- rtp1[rtp1[, "GAdj-R2"] >= c2 , ]
+    rtp1.d <- NULL
   }
-  ## Number of cutoff = 3, have four regions
+  ## number of cutoff = 3, have four regions
   if (count == 3) {
     c1 <- cutoff[1] ; c2 <- cutoff[2] ; c3 <- cutoff[3] 
     rtp1.a <- rtp1[rtp1[, "GAdj-R2"] < c1, ]
@@ -88,7 +94,7 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
     rtp1.d <- rtp1[rtp1[, "GAdj-R2"] >= c3 , ]
   }
   
-  ## Names of Resp and Vars
+  ## names of Resp and Vars
   name <- colnames(x$data)
   conp1.m1 <- sapply(3:length(name), function(i) { 
     paste0(name[i], "[fillcolor=khaki]") 
@@ -96,7 +102,7 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
   )
   
   
-  ## Assign the latent variable to each mechanic variable
+  ## assign the latent variable to each mechanic variable
   if (!is.null(latent)) {
     conp1.La1 <- sapply(1:length(latent), function(i) { 
       paste0(latent[i], "[fillcolor=LightBlue]") 
@@ -108,9 +114,10 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
              arrowhead=none]")
     }
     )
-    ## Style is True represents plot the first interval with dotted weak line
+    ## style is True represents plot the first interval with dotted weak line
     if (style) {
-      ## Set up parameters for the first region
+      ## set up parameters for the first region
+      if (is.null(rtp1.a) == F) {
       if (dim(rtp1.a)[1] > 0) {
         conp1.a1 <- sapply(1:nrow(rtp1.a), function(i) {
           paste0(rtp1.a[i,2], "->", rtp1.a[i,1], "[label='@@", i, "', 
@@ -128,9 +135,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
         )
+      } else {
+        conp1.a1 <- NULL
+        conp1.a2 <- NULL
       }
-      ## Set up parameters for the second region
+      } else {
+        conp1.a1 <- NULL
+        conp1.a2 <- NULL
+      }
+      ## set up parameters for the second region
       count.1 <- nrow(rtp1.a)
+      if (is.null(rtp1.b) == F) {
       if (dim(rtp1.b)[1] > 0) {
         conp1.b1 <- sapply(1:nrow(rtp1.b), function(i) {
           paste0(rtp1.b[i,2], "->", rtp1.b[i,1], "[label='@@", i + count.1, 
@@ -148,9 +163,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
         )
+      } else {
+        conp1.b1 <- NULL
+        conp1.b2 <- NULL
       }
-      ## Set up parameters for the third region
+      } else {
+        conp1.b1 <- NULL
+        conp1.b2 <- NULL
+      }
+      ## set up parameters for the third region
       count.2 <- count.1 + nrow(rtp1.b)
+      if (is.null(rtp1.c) == F) {
       if (dim(rtp1.c)[1] > 0) {
         conp1.c1 <- sapply(1:nrow(rtp1.c), function(i) {
           paste0(rtp1.c[i,2], "->", rtp1.c[i,1], "[label='@@" ,i + count.2, 
@@ -168,9 +191,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
         )
+      } else {
+        conp1.c1 <- NULL
+        conp1.c2 <- NULL
       }
-      ## Set up parameters for the four region
+      } else {
+        conp1.c1 <- NULL
+        conp1.c2 <- NULL
+      }
+      ## set up parameters for the four region
       count.3 <- count.2 + nrow(rtp1.c)
+      if (is.null(rtp1.d) == F) {
       if (dim(rtp1.d)[1] > 0) {
         conp1.d1 <- sapply(1:nrow(rtp1.d), function(i) {
           paste0(rtp1.d[i,2], "->", rtp1.d[i,1], "[label='@@", i + count.3, 
@@ -188,30 +219,37 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
         )
+      } else {
+        conp1.d1 <- NULL
+        conp1.d2 <- NULL
+      }
+      } else {
+        conp1.d1 <- NULL
+        conp1.d2 <- NULL
       }
       
-      ## Test whether each region has model/parameter or not
+      ## test whether each region has model/parameter or not
       A <- rep(0,4)
       if (exists("conp1.a1") == T) { A[1] <- 1 }
       if (exists("conp1.b1") == T) { A[2] <- 1 }
       if (exists("conp1.c1") == T) { A[3] <- 1 }
       if (exists("conp1.d1") == T) { A[4] <- 1 }
       
-      ## All of four regions have models
+      ## all of four regions have models
       ### Plotting starts here. Bug could start here ###
       
       if (sum(A) == 4 ) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", #name[1] is oval. What's name[1]?
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -234,21 +272,21 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.d2, collapse = "\n"), "\n" 
         )
       }
-      ## Three regions have models
+      ## three regions have models
       if (sum(A) == 3 ) {
-        ## Only region 'a' does not have models, plot other three regions
-        if(exists("conp1.a1") == F) {
+        ## only region 'a' does not have models, plot other three regions
+        if(is.null(conp1.a1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=Palegreen]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -268,19 +306,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.d2, collapse = "\n"), "\n"
           )
         }
-        ## Only region 'b' does not have models, plot other three regions
-        if (exists("conp1.b1") == F) {
+        ## only region 'b' does not have models, plot other three regions
+        if (is.null(conp1.b1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -300,19 +338,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.d2, collapse = "\n"), "\n" 
           )
         }
-        ## Only region 'c' does not have models, plot other three regions
-        if (exists("conp1.c1") == F) {
+        ## only region 'c' does not have models, plot other three regions
+        if (is.null(conp1.c1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -332,19 +370,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.d2, collapse = "\n"), "\n" 
           )
         }
-        ## Only region 'd' does not have models, plot other three regions
-        if (exists("conp1.d1") == F) {
+        ## only region 'd' does not have models, plot other three regions
+        if (is.null(conp1.d1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -365,22 +403,22 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
       }
-      ## Two regions have models
+      ## two regions have models
       if (sum(A) == 2 ) {
-        ## Only region 'a' and 'b' does not have models, plot other two regions
-        if (exists("conp1.a1") == F & 
-            exists("conp1.b1") == F ) {
+        ## only region 'a' and 'b' does not have models, plot other two regions
+        if (is.null(conp1.a1) & 
+            is.null(conp1.b1) ) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -397,20 +435,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.d2,collapse = "\n"), "\n" 
           )
         }
-        ## Only region 'a' and 'c' does not have models, plot other two regions
-        if (exists("conp1.a1") == F & 
-            exists("conp1.c1") == F ) {
+        ## only region 'a' and 'c' does not have models, plot other two regions
+        if (is.null(conp1.a1) & 
+            is.null(conp1.c1) ) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -427,20 +465,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.d2, collapse = "\n"), "\n" 
           )
         }
-        ## Only region 'a' and 'd' does not have models, plot other two regions
-        if (exists("conp1.a1") == F & 
-            exists("conp1.d1") == F ) {
+        ## only region 'a' and 'd' does not have models, plot other two regions
+        if (is.null(conp1.a1) & 
+            is.null(conp1.d1) ) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -457,20 +495,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.c2, collapse = "\n"), "\n" 
           )
         }
-        ## Only region 'b' and 'c' does not have models, plot other two regions
-        if (exists("conp1.b1") == F & 
-            exists("conp1.c1") == F) {
+        ## only region 'b' and 'c' does not have models, plot other two regions
+        if (is.null(conp1.b1) & 
+            is.null(conp1.c1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -487,20 +525,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.d2, collapse = "\n"), "\n" 
           )
         }
-        ## Only region 'b' and 'd' does not have models, plot other two regions
-        if (exists("conp1.b1") == F & 
-            exists("conp1.d1") == F) {
+        ## only region 'b' and 'd' does not have models, plot other two regions
+        if (is.null(conp1.b1) & 
+            is.null(conp1.d1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n",
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -517,20 +555,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.c2, collapse = "\n"), "\n" 
           )
         }
-        ## Only region 'c' and 'd' does not have models, plot other two regions
-        if (exists("conp1.c1") == F & 
-            exists("conp1.d1") == F) {
+        ## only region 'c' and 'd' does not have models, plot other two regions
+        if (is.null(conp1.c1) & 
+            is.null(conp1.d1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -548,23 +586,23 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
       }
-      ## Only one region has the model
+      ## only one region has the model
       if (sum(A) == 1 ) {
         ## Region 'a', 'b' and 'c' does not have models, plot the other region
-        if (exists("conp1.a1") == F & 
-            exists("conp1.b1") == F & 
-            exists("conp1.c1") == F ) {
+        if (is.null(conp1.a1) & 
+            is.null(conp1.b1) & 
+            is.null(conp1.c1) ) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -579,20 +617,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
         ## Region 'a', 'b' and 'd' does not have models, plot the other region
-        if (exists("conp1.a1") == F & 
-            exists("conp1.b1") == F & 
-            exists("conp1.d1") == F ) {
+        if (is.null(conp1.a1) & 
+            is.null(conp1.b1) & 
+            is.null(conp1.d1) ) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4,
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -607,20 +645,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
         ## Region 'a', 'c' and 'd' does not have models, plot the other region
-        if (exists("conp1.a1") == F & 
-            exists("conp1.c1") == F & 
-            exists("conp1.d1") == F ) {
+        if (is.null(conp1.a1) & 
+            is.null(conp1.c1) & 
+            is.null(conp1.d1) ) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T,
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -635,20 +673,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
         }
         ## Region 'b', 'c' and 'd' does not have models, plot the other region
-        if (exists("conp1.b1") == F & 
-            exists("conp1.c1") == F & 
-            exists("conp1.d1") == F) {
+        if (is.null(conp1.b1) & 
+            is.null(conp1.c1) & 
+            is.null(conp1.d1)) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n",
@@ -666,7 +704,8 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
       
   } else {
     
-    ## Set up parameters for the first region
+    ## set up parameters for the first region
+    if (is.null(rtp1.a) == F) {
     if (dim(rtp1.a)[1] > 0) {
       conp1.a1 <- sapply(1:nrow(rtp1.a), function(i) {
         paste0(rtp1.a[i,2], "->", rtp1.a[i,1], "[label='@@", i, "', 
@@ -678,9 +717,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
       #         colnames(rtp1.a)[5],": ",rtp1.a[i,5],"')")
       #}
       #)
+    } else {
+      conp1.a1 <- NULL
+      conp1.a2 <- NULL
     }
-    ## Set up parameters for the second region
+    } else {
+      conp1.a1 <- NULL
+      conp1.a2 <- NULL
+    }
+    ## set up parameters for the second region
     count.1 <- 0
+    if (is.null(rtp1.b) == F) {
     if (dim(rtp1.b)[1] > 0) {
       conp1.b1 <- sapply(1:nrow(rtp1.b), function(i) {
         paste0(rtp1.b[i,2], "->", rtp1.b[i,1], "[label='@@", i + count.1, "', 
@@ -698,9 +745,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
       )
+    } else {
+      conp1.b1 <- NULL
+      conp1.b2 <- NULL
     }
-    ## Set up parameters for the third region
+    } else {
+      conp1.b1 <- NULL
+      conp1.b2 <- NULL
+    }
+    ## set up parameters for the third region
     count.2 <- count.1 + nrow(rtp1.b)
+    if (is.null(rtp1.c) == F) {
     if (dim(rtp1.c)[1] > 0) {
       conp1.c1 <- sapply(1:nrow(rtp1.c), function(i) {
         paste0(rtp1.c[i,2], "->", rtp1.c[i,1], "[label='@@", i + count.2, "', 
@@ -718,9 +773,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
       )
+    } else {
+      conp1.c1 <- NULL
+      conp1.c2 <- NULL
     }
-    ## Set up parameters for the four region
+    } else {
+      conp1.c1 <- NULL
+      conp1.c2 <- NULL
+    }
+    ## set up parameters for the four region
     count.3 <- count.2 + nrow(rtp1.c)
+    if (is.null(rtp1.c) == F) {
     if (dim(rtp1.d)[1] > 0) {
       conp1.d1 <- sapply(1:nrow(rtp1.d), function(i) {
         paste0(rtp1.d[i,2], "->", rtp1.d[i,1], "[label='@@", i + count.3, "', 
@@ -738,28 +801,35 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
       )
+    } else {
+      conp1.d1 <- NULL
+      conp1.d2 <- NULL
+    }
+    } else {
+      conp1.d1 <- NULL
+      conp1.d2 <- NULL
     }
     
-    ## Test whether each region has model/parameter or not
+    ## test whether each region has model/parameter or not
     A <- rep(0,4)
     if (exists("conp1.a1") == T) { A[1] <- 1 }
     if (exists("conp1.b1") == T) { A[2] <- 1 }
     if (exists("conp1.c1") == T) { A[3] <- 1 }
     if (exists("conp1.d1") == T) { A[4] <- 1 }
     
-    ## All of four regions have models
+    ## all of four regions have models
     if (sum(A) == 4 ) {
       c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                        nodesep = 1.8, ranksep =0.9, layout = dot, 
-                       rankdir = LR]", "\n", 
+                       rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", 
                        "node[fontname=Helvetica, shape=box, fixedsize=T, 
                        fontsize=100, color=dodgerblue, style=filled, penwidth=6, 
                        width=4, height=3]", "\n", 
-                       paste0(name[1]), "[fillcolor=violet]", "\n", 
+                       paste0(endogenous), "[fillcolor=Violet]", "\n", 
                        "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                        fontsize=100, color=dodgerblue, style=filled, 
                        penwidth=6]", "\n", 
-                       paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                       paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                        "node[fontname=Helvetica, shape=box, fixedsize=F, 
                        color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                        paste0(conp1.m1, collapse = ";"), "\n",
@@ -783,21 +853,21 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
       )
       
     }
-    ## Three regions have models
+    ## three regions have models
     if (sum(A) == 3 ) {
       ## only region 'a' does not have models, plot other three regions
-      if (exists("conp1.a1") == F) {
+      if (is.null(conp1.a1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4,
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -817,19 +887,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.d2, collapse = "\n"), "\n" 
         )
       }
-      ## Only region 'b' does not have models, plot other three regions
-      if (exists("conp1.b1") == F) {
+      ## only region 'b' does not have models, plot other three regions
+      if (is.null(conp1.b1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]","\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, 
                          width=4,height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -849,19 +919,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.d2, collapse = "\n"), "\n"
         )
       }
-      ## Only region 'c' does not have models, plot other three regions
-      if (exists("conp1.c1") == F) {
+      ## only region 'c' does not have models, plot other three regions
+      if (is.null(conp1.c1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -881,19 +951,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.d2, collapse = "\n"), "\n" 
         )
       }
-      ## Only region 'd' does not have models, plot other three regions
-      if (exists("conp1.d1") == F) {
+      ## only region 'd' does not have models, plot other three regions
+      if (is.null(conp1.d1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -914,22 +984,22 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
     }
-    ## Two regions have models
+    ## two regions have models
     if (sum(A) == 2 ) {
-      ## Only region 'a' and 'b' does not have models, plot other two regions
-      if (exists("conp1.a1") == F & 
-          exists("conp1.b1") == F ) {
+      ## only region 'a' and 'b' does not have models, plot other two regions
+      if (is.null(conp1.a1) & 
+          is.null(conp1.b1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -946,20 +1016,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.d2, collapse = "\n"), "\n" 
         )
       }
-      ## Only region 'a' and 'c' does not have models, plot other two regions
-      if (exists("conp1.a1") == F & 
-          exists("conp1.c1") == F ) {
+      ## only region 'a' and 'c' does not have models, plot other two regions
+      if (is.null(conp1.a1) & 
+          is.null(conp1.c1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -976,20 +1046,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.d2, collapse = "\n"), "\n" 
         )
       }
-      ## Only region 'a' and 'd' does not have models, plot other two regions
-      if (exists("conp1.a1") == F & 
-          exists("conp1.d1") == F ) {
+      ## only region 'a' and 'd' does not have models, plot other two regions
+      if (is.null(conp1.a1) & 
+          is.null(conp1.d1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T,
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse=";"), "\n",
@@ -1006,20 +1076,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.c2, collapse = "\n"), "\n" 
         )
       }
-      ## Only region 'b' and 'c' does not have models, plot other two regions
-      if (exists("conp1.b1") == F & 
-          exists("conp1.c1") == F) {
+      ## only region 'b' and 'c' does not have models, plot other two regions
+      if (is.null(conp1.b1) & 
+          is.null(conp1.c1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -1036,20 +1106,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.d2, collapse = "\n"), "\n" 
         )
       }
-      ## Only region 'b' and 'd' does not have models, plot other two regions
-      if (exists("conp1.b1") == F & 
-          exists("conp1.d1") == F) {
+      ## only region 'b' and 'd' does not have models, plot other two regions
+      if (is.null(conp1.b1) & 
+          is.null(conp1.d1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n",
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -1066,20 +1136,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                          paste(conp1.c2, collapse = "\n"), "\n" 
         )
       }
-      ## Only region 'c' and 'd' does not have models, plot other two regions
-      if (exists("conp1.c1") == F & 
-          exists("conp1.d1") == F) {
+      ## only region 'c' and 'd' does not have models, plot other two regions
+      if (is.null(conp1.c) & 
+          is.null(conp1.d1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -1097,23 +1167,23 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
     }
-    ## Only one region has the model
+    ## only one region has the model
     if (sum(A) == 1 ) {
       ## Region 'a', 'b' and 'c' does not have models, plot the other region
-      if (exists("conp1.a1") == F & 
-          exists("conp1.b1") == F & 
-          exists("conp1.c1") == F ) {
+      if (is.null(conp1.a1) & 
+          is.null(conp1.b1) & 
+          is.null(conp1.c1) ) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -1128,20 +1198,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
       ## Region 'a', 'b' and 'd' does not have models, plot the other region
-      if (exists("conp1.a1") == F & 
-          exists("conp1.b1") == F & 
-          exists("conp1.d1") == F ) {
+      if (is.null(conp1.a1) & 
+          is.null(conp1.b1) & 
+          is.null(conp1.d1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -1156,20 +1226,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
       ## Region 'a', 'c' and 'd' does not have models, plot the other region
-      if (exists("conp1.a1") == F & 
-          exists("conp1.c1") == F & 
-          exists("conp1.d1") == F ) {
+      if (is.null(conp1.a1) & 
+          is.null(conp1.c1) & 
+          is.null(conp1.d1) ) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n",
@@ -1184,20 +1254,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         )
       }
       ## Region 'b', 'c' and 'd' does not have models, plot the other region
-      if (exists("conp1.b1") == F & 
-          exists("conp1.c1") == F & 
-          exists("conp1.d1") == F) {
+      if (is.null(conp1.b1) & 
+          is.null(conp1.c1) & 
+          is.null(conp1.d1)) {
         c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                          nodesep = 1.8, ranksep =0.9, layout = dot, 
-                         rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                         rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                          shape=box, fixedsize=T, fontsize=100, 
                          color=dodgerblue, style=filled, penwidth=6, width=4, 
                          height=3]", "\n", 
-                         paste0(name[1]), "[fillcolor=violet]", "\n", 
+                         paste0(endogenous), "[fillcolor=Violet]", "\n", 
                          "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                          fontsize=100, color=dodgerblue, style=filled, 
                          penwidth=6]", "\n", 
-                         paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                         paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                          "node[fontname=Helvetica, shape=box, fixedsize=F, 
                          color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                          paste0(conp1.m1, collapse = ";"), "\n", "}",
@@ -1216,12 +1286,12 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
     }
     
     
-    } 
-    else{
+    } else{
       
-      ## Style is True represents plot the first interval with dotted weak line
+      ## style is True represents plot the first interval with dotted weak line
       if (style) {
-        ## Set up parameters for the first region
+        ## set up parameters for the first region
+        if (is.null(rtp1.a) == F) {
         if (dim(rtp1.a)[1] > 0) {
           conp1.a1 <- sapply(1:nrow(rtp1.a), function(i) {
             paste0(rtp1.a[i,2], "->", rtp1.a[i,1], "[label='@@", i, "', 
@@ -1239,9 +1309,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
           }
           )
+        } else {
+          conp1.a1 <- NULL
+          conp1.a2 <- NULL
         }
-        ## Set up parameters for the second region
+        } else {
+          conp1.a1 <- NULL
+          conp1.a2 <- NULL
+        }
+        ## set up parameters for the second region
         count.1 <- nrow(rtp1.a)
+        if (is.null(rtp1.b) == F) {
         if (dim(rtp1.b)[1] > 0) {
           conp1.b1 <- sapply(1:nrow(rtp1.b), function(i) {
             paste0(rtp1.b[i,2], "->", rtp1.b[i,1], "[label='@@", i + count.1, 
@@ -1252,16 +1330,26 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             paste0("[", i + count.1, "]", ": ", "paste('", 
                    #colnames(rtp1.b)[3], ": ", rtp1.b[i,3], "\\n", 
                    #colnames(rtp1.b)[4], ": ", rtp1.b[i,4], "\\n", 
-                   #colnames(rtp1.b)[5], ": ", rtp1.b[i,5], "\\n", 
+                   colnames(rtp1.b)[5], ": ", rtp1.b[i,5], 
+                   #"\\n", 
                    #colnames(rtp1.b)[9], ": ", 
-                   rtp1.b[i,9],               
+                   #rtp1.b[i,9],               
                    "')"
             )
           }
           )
+        } else {
+          conp1.b1 <- NULL
+          conp1.b2 <- NULL
         }
-        ## Set up parameters for the third region
+        } else {
+          conp1.b1 <- NULL
+          conp1.b2 <- NULL
+        }
+        
+        ## set up parameters for the third region
         count.2 <- count.1 + nrow(rtp1.b)
+        if (is.null(rtp1.c) == F) {
         if (dim(rtp1.c)[1] > 0) {
           conp1.c1 <- sapply(1:nrow(rtp1.c), function(i) {
             paste0(rtp1.c[i,2], "->", rtp1.c[i,1], "[label='@@" ,i + count.2, 
@@ -1270,18 +1358,22 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
           conp1.c2 <- sapply(1:nrow(rtp1.c), function(i) {
             paste0("[", i + count.2, "]", ": ", "paste('", 
-                   #colnames(rtp1.c)[3], ": ", rtp1.c[i,3], "\\n", 
-                   #colnames(rtp1.c)[4], ": ", rtp1.c[i,4], "\\n", 
-                   #colnames(rtp1.c)[5], ": ", rtp1.c[i,5], "\\n", 
-                   #colnames(rtp1.c)[9], ": ", 
-                   rtp1.c[i,9],                
+                   colnames(rtp1.b)[5], ": ", rtp1.b[i,5],               
                    "')"
             )
           }
           )
+        } else {
+          conp1.c1 <- NULL
+          conp1.c2 <- NULL
         }
-        ## Set up parameters for the four region
+        } else {
+          conp1.c1 <- NULL
+          conp1.c2 <- NULL
+        }
+        ## set up parameters for the four region
         count.3 <- count.2 + nrow(rtp1.c)
+        if (is.null(rtp1.d) == F) {
         if (dim(rtp1.d)[1] > 0) {
           conp1.d1 <- sapply(1:nrow(rtp1.d), function(i) {
             paste0(rtp1.d[i,2], "->", rtp1.d[i,1], "[label='@@", i + count.3, 
@@ -1290,36 +1382,40 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
           )
           conp1.d2 <- sapply(1:nrow(rtp1.d), function(i) {
             paste0("[", i + count.3, "]", ": ", "paste('", 
-                   #colnames(rtp1.d)[3], ": ", rtp1.d[i,3], "\\n", 
-                   #colnames(rtp1.d)[4], ": ", rtp1.d[i,4], "\\n", 
-                   #colnames(rtp1.d)[5], ": ", rtp1.d[i,5], "\\n", 
-                   #colnames(rtp1.d)[9], ": ", 
-                   rtp1.d[i,9], 
+                   colnames(rtp1.d)[5], ": ", rtp1.d[i,5], 
                    "')"
             )
           }
           )
+        } else {
+          conp1.d1 <- NULL
+          conp1.d2 <- NULL
+        }
+        } else {
+          conp1.d1 <- NULL
+          conp1.d2 <- NULL
         }
         
-        ## Test whether each region has model/parameter or not
+        ## test whether each region has model/parameter or not
         A <- rep(0,4)
-        if (exists("conp1.a1") == T) { A[1] <- 1 }
-        if (exists("conp1.b1") == T) { A[2] <- 1 }
-        if (exists("conp1.c1") == T) { A[3] <- 1 }
-        if (exists("conp1.d1") == T) { A[4] <- 1 }
-        ## All of four regions have models
+        if (is.null(conp1.a1) == F) { A[1] <- 1 }
+        if (is.null(conp1.b1) == F) { A[2] <- 1 }
+        if (is.null(conp1.c1) == F) { A[3] <- 1 }
+        if (is.null(conp1.d1) == F) { A[4] <- 1 }
+        
+        ## all of four regions have models
         if (sum(A) == 4 ) {
           c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                            nodesep = 1.8, ranksep =0.9, layout = dot, 
-                           rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                           rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                            shape=box, fixedsize=T, fontsize=100, 
                            color=dodgerblue, style=filled, penwidth=6, width=4, 
                            height=3]", "\n", 
-                           paste0(name[1]), "[fillcolor=violet]", "\n", 
+                           paste0(endogenous), "[fillcolor=Violet]", "\n", 
                            "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                            fontsize=100, color=dodgerblue, style=filled, 
                            penwidth=6]", "\n", 
-                           paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                           paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                            "node[fontname=Helvetica, shape=box, fixedsize=F, 
                            color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                            paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1337,21 +1433,21 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                            paste(conp1.d2, collapse = "\n"), "\n" 
           )
         }
-        ## Three regions have models
+        ## three regions have models
         if (sum(A) == 3 ) {
-          ## Only region 'a' does not have models, plot other three regions
-          if(exists("conp1.a1") == F) {
+          ## only region 'a' does not have models, plot other three regions
+          if(is.null(conp1.a1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1366,19 +1462,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.d2, collapse = "\n"), "\n"
             )
           }
-          ## Only region 'b' does not have models, plot other three regions
-          if (exists("conp1.b1") == F) {
+          ## only region 'b' does not have models, plot other three regions
+          if (is.null(conp1.b1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1393,19 +1489,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.d2, collapse = "\n"), "\n" 
             )
           }
-          ## Only region 'c' does not have models, plot other three regions
-          if (exists("conp1.c1") == F) {
+          ## only region 'c' does not have models, plot other three regions
+          if (is.null(conp1.c1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1420,19 +1516,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.d2, collapse = "\n"), "\n" 
             )
           }
-          ## Only region 'd' does not have models, plot other three regions
-          if (exists("conp1.d1") == F) {
+          ## only region 'd' does not have models, plot other three regions
+          if (is.null(conp1.d1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1448,22 +1544,22 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
           }
         }
-        ## Two regions have models
+        ## two regions have models
         if (sum(A) == 2 ) {
-          ## Only region 'a' and 'b' does not have models, plot other two regions
-          if (exists("conp1.a1") == F & 
-              exists("conp1.b1") == F ) {
+          ## only region 'a' and 'b' does not have models, plot other two regions
+          if (is.null(conp1.a1) & 
+              is.null(conp1.b1) ) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1475,20 +1571,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.d2,collapse = "\n"), "\n" 
             )
           }
-          ## Only region 'a' and 'c' does not have models, plot other two regions
-          if (exists("conp1.a1") == F & 
-              exists("conp1.c1") == F ) {
+          ## only region 'a' and 'c' does not have models, plot other two regions
+          if (is.null(conp1.a1) & 
+              is.null(conp1.c1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1500,20 +1596,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.d2, collapse = "\n"), "\n" 
             )
           }
-          ## Only region 'a' and 'd' does not have models, plot other two regions
-          if (exists("conp1.a1") == F & 
-              exists("conp1.d1") == F ) {
+          ## only region 'a' and 'd' does not have models, plot other two regions
+          if (is.null(conp1.a1) & 
+              is.null(conp1.d1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1525,20 +1621,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.c2, collapse = "\n"), "\n" 
             )
           }
-          ## Only region 'b' and 'c' does not have models, plot other two regions
-          if (exists("conp1.b1") == F & 
-              exists("conp1.c1") == F) {
+          ## only region 'b' and 'c' does not have models, plot other two regions
+          if (is.null(conp1.b1) & 
+              is.null(conp1.c1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1550,20 +1646,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.d2, collapse = "\n"), "\n" 
             )
           }
-          ## Only region 'b' and 'd' does not have models, plot other two regions
-          if (exists("conp1.b1") == F & 
-              exists("conp1.d1") == F) {
+          ## only region 'b' and 'd' does not have models, plot other two regions
+          if (is.null(conp1.b1) & 
+              is.null(conp1.d1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n",
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1575,20 +1671,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                              paste(conp1.c2, collapse = "\n"), "\n" 
             )
           }
-          ## Only region 'c' and 'd' does not have models, plot other two regions
-          if (exists("conp1.c1") == F & 
-              exists("conp1.d1") == F) {
+          ## only region 'c' and 'd' does not have models, plot other two regions
+          if (is.null(conp1.c1) & 
+              is.null(conp1.d1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1601,23 +1697,23 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
           }
         }
-        ## Only one region has the model
+        ## only one region has the model
         if (sum(A) == 1 ) {
           ## Region 'a', 'b' and 'c' does not have models, plot the other region
-          if (exists("conp1.a1") == F & 
-              exists("conp1.b1") == F & 
-              exists("conp1.c1") == F ) {
+          if (is.null(conp1.a1) & 
+              is.null(conp1.b1) & 
+              is.null(conp1.c1) ) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1627,20 +1723,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
           }
           ## Region 'a', 'b' and 'd' does not have models, plot the other region
-          if (exists("conp1.a1") == F & 
-              exists("conp1.b1") == F & 
-              exists("conp1.d1") == F ) {
+          if (is.null(conp1.a1) & 
+              is.null(conp1.b1) & 
+              is.null(conp1.d1) ) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4,
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1650,20 +1746,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
           }
           ## Region 'a', 'c' and 'd' does not have models, plot the other region
-          if (exists("conp1.a1") == F & 
-              exists("conp1.c1") == F & 
-              exists("conp1.d1") == F ) {
+          if (is.null(conp1.a1) & 
+              is.null(conp1.c1) & 
+              is.null(conp1.d1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T,
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1673,20 +1769,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
           }
           ## Region 'b', 'c' and 'd' does not have models, plot the other region
-          if (exists("conp1.b1") == F & 
-              exists("conp1.c1") == F & 
-              exists("conp1.d1") == F) {
+          if (is.null(conp1.b1) & 
+              is.null(conp1.c1) & 
+              is.null(conp1.d1)) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                              shape=box, fixedsize=T, fontsize=100, 
                              color=dodgerblue, style=filled, penwidth=6, width=4, 
                              height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1699,7 +1795,8 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
         
         } else {
           
-          ## Set up parameters for the first region
+          ## set up parameters for the first region
+          if (is.null(rtp1.a) == F) {
           if (dim(rtp1.a)[1] > 0) {
             conp1.a1 <- sapply(1:nrow(rtp1.a), function(i) {
               paste0(rtp1.a[i,2], "->", rtp1.a[i,1], "[label='@@", i, "', 
@@ -1711,9 +1808,17 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             #         colnames(rtp1.a)[5],": ",rtp1.a[i,5],"')")
             #}
             #)
+          } else {
+            conp1.a1 <- NULL
+            conp1.a2 <- NULL
           }
-          ## Set up parameters for the second region
+          } else {
+            conp1.a1 <- NULL
+            conp1.a2 <- NULL
+          }
+          ## set up parameters for the second region
           count.1 <- 0
+          if (is.null(rtp1.b) == F) {
           if (dim(rtp1.b)[1] > 0) {
             conp1.b1 <- sapply(1:nrow(rtp1.b), function(i) {
               paste0(rtp1.b[i,2], "->", rtp1.b[i,1], "[label='@@", i + count.1, "', 
@@ -1722,18 +1827,22 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
             conp1.b2 <- sapply(1:nrow(rtp1.b), function(i) {
               paste0("[", i + count.1, "]", ": ", "paste('", 
-                     #colnames(rtp1.b)[3], ": ", rtp1.b[i,3], "\\n", 
-                     #colnames(rtp1.b)[4], ": ", rtp1.b[i,4], "\\n", 
-                     #colnames(rtp1.b)[5], ": ", rtp1.b[i,5], "\\n", 
-                     #colnames(rtp1.b)[9], ": ", 
-                     rtp1.b[i,9], 
+                     colnames(rtp1.b)[5], ": ", rtp1.b[i,5], 
                      "')"
               )
             }
             )
+          } else {
+            conp1.b1 <- NULL
+            conp1.b2 <- NULL
           }
-          ## Set up parameters for the third region
+          } else {
+            conp1.b1 <- NULL
+            conp1.b2 <- NULL
+          }
+          ## set up parameters for the third region
           count.2 <- count.1 + nrow(rtp1.b)
+          if (is.null(rtp1.c) == F) {
           if (dim(rtp1.c)[1] > 0) {
             conp1.c1 <- sapply(1:nrow(rtp1.c), function(i) {
               paste0(rtp1.c[i,2], "->", rtp1.c[i,1], "[label='@@", i + count.2, "', 
@@ -1742,18 +1851,22 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
             conp1.c2 <- sapply(1:nrow(rtp1.c), function(i) {
               paste0("[", i + count.2, "]", ": ", "paste('", 
-                     #colnames(rtp1.c)[3], ": ", rtp1.c[i,3], "\\n", 
-                     #colnames(rtp1.c)[4], ": ", rtp1.c[i,4], "\\n", 
-                     #colnames(rtp1.c)[5], ": ", rtp1.c[i,5], "\\n", 
-                     #colnames(rtp1.c)[9], ": ",
-                     rtp1.c[i,9], 
+                     colnames(rtp1.c)[5], ": ", rtp1.c[i,5], 
                      "')"
               )
             }
             )
+          } else {
+            conp1.c1 <- NULL
+            conp1.c2 <- NULL
           }
-          ## Set up parameters for the four region
+          } else {
+            conp1.c1 <- NULL
+            conp1.c2 <- NULL
+          }
+          ## set up parameters for the four region
           count.3 <- count.2 + nrow(rtp1.c)
+          if (is.null(rtp1.d) == F) {
           if (dim(rtp1.d)[1] > 0) {
             conp1.d1 <- sapply(1:nrow(rtp1.d), function(i) {
               paste0(rtp1.d[i,2], "->", rtp1.d[i,1], "[label='@@", i + count.3, "', 
@@ -1762,37 +1875,40 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
             conp1.d2 <- sapply(1:nrow(rtp1.d), function(i) {
               paste0("[", i + count.3, "]", ": ", "paste('", 
-                     #colnames(rtp1.d)[3], ": ", rtp1.d[i,3], "\\n", 
-                     #colnames(rtp1.d)[4], ": ", rtp1.d[i,4], "\\n", 
-                     #colnames(rtp1.d)[5], ": ", rtp1.d[i,5], "\\n", 
-                     #colnames(rtp1.d)[9], ": ", 
-                     rtp1.d[i,9], 
+                     colnames(rtp1.d)[5], ": ", rtp1.d[i,5], 
                      "')"
               )
             }
             )
+          } else {
+            conp1.d1 <- NULL
+            conp1.d2 <- NULL
+          }
+          } else {
+            conp1.d1 <- NULL
+            conp1.d2 <- NULL
           }
           
-          ## Test whether each region has model/parameter or not
+          ## test whether each region has model/parameter or not
           A <- rep(0,4)
-          if (exists("conp1.a1") == T) { A[1] <- 1 }
-          if (exists("conp1.b1") == T) { A[2] <- 1 }
-          if (exists("conp1.c1") == T) { A[3] <- 1 }
-          if (exists("conp1.d1") == T) { A[4] <- 1 }
+          if (is.null(conp1.a1) == F) { A[1] <- 1 }
+          if (is.null(conp1.b1) == F) { A[2] <- 1 }
+          if (is.null(conp1.c1) == F) { A[3] <- 1 }
+          if (is.null(conp1.d1) == F) { A[4] <- 1 }
           
-          ## All of four regions have models
+          ## all of four regions have models
           if (sum(A) == 4 ) {
             c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                              nodesep = 1.8, ranksep =0.9, layout = dot, 
-                             rankdir = LR]", "\n", 
+                             rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, penwidth=6, 
                              width=4, height=3]", "\n", 
-                             paste0(name[1]), "[fillcolor=violet]", "\n", 
+                             paste0(endogenous), "[fillcolor=Violet]", "\n", 
                              "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                              fontsize=100, color=dodgerblue, style=filled, 
                              penwidth=6]", "\n", 
-                             paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                             paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                              "node[fontname=Helvetica, shape=box, fixedsize=F, 
                              color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                              paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1811,21 +1927,21 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
             )
             
           }
-          ## Three regions have models
+          ## three regions have models
           if (sum(A) == 3 ) {
-            ## Only region 'a' does not have models, plot other three regions
-            if (exists("conp1.a1") == F) {
+            ## only region 'a' does not have models, plot other three regions
+            if (is.null(conp1.a1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4,
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1840,19 +1956,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.d2, collapse = "\n"), "\n" 
               )
             }
-            ## Only region 'b' does not have models, plot other three regions
-            if (exists("conp1.b1") == F) {
+            ## only region 'b' does not have models, plot other three regions
+            if (is.null(conp1.b1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]","\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, 
                                width=4,height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1867,19 +1983,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.d2, collapse = "\n"), "\n"
               )
             }
-            ## Only region 'c' does not have models, plot other three regions
-            if (exists("conp1.c1") == F) {
+            ## only region 'c' does not have models, plot other three regions
+            if (is.null(conp1.c1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1894,19 +2010,19 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.d2, collapse = "\n"), "\n" 
               )
             }
-            ## Only region 'd' does not have models, plot other three regions
-            if (exists("conp1.d1") == F) {
+            ## only region 'd' does not have models, plot other three regions
+            if (is.null(conp1.d1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1922,22 +2038,22 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
               )
             }
           }
-          ## Two regions have models
+          ## two regions have models
           if (sum(A) == 2 ) {
-            ## Only region 'a' and 'b' does not have models, plot other two regions
-            if (exists("conp1.a1") == F & 
-                exists("conp1.b1") == F ) {
+            ## only region 'a' and 'b' does not have models, plot other two regions
+            if (is.null(conp1.a1) & 
+                is.null(conp1.b1) ) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1949,20 +2065,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.d2, collapse = "\n"), "\n" 
               )
             }
-            ## Only region 'a' and 'c' does not have models, plot other two regions
-            if (exists("conp1.a1") == F & 
-                exists("conp1.c1") == F ) {
+            ## only region 'a' and 'c' does not have models, plot other two regions
+            if (is.null(conp1.a1) & 
+                is.null(conp1.c1) ) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -1974,20 +2090,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.d2, collapse = "\n"), "\n" 
               )
             }
-            ## Only region 'a' and 'd' does not have models, plot other two regions
-            if (exists("conp1.a1") == F & 
-                exists("conp1.d1") == F ) {
+            ## only region 'a' and 'd' does not have models, plot other two regions
+            if (is.null(conp1.a1) & 
+                is.null(conp1.d1) ) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T,
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse=";"), "\n", 
@@ -1999,20 +2115,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.c2, collapse = "\n"), "\n" 
               )
             }
-            ## Only region 'b' and 'c' does not have models, plot other two regions
-            if (exists("conp1.b1") == F & 
-                exists("conp1.c1") == F) {
+            ## only region 'b' and 'c' does not have models, plot other two regions
+            if (is.null(conp1.b1) & 
+                is.null(conp1.c1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -2024,20 +2140,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.d2, collapse = "\n"), "\n" 
               )
             }
-            ## Only region 'b' and 'd' does not have models, plot other two regions
-            if (exists("conp1.b1") == F & 
-                exists("conp1.d1") == F) {
+            ## only region 'b' and 'd' does not have models, plot other two regions
+            if (is.null(conp1.b1) & 
+                is.null(conp1.d1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n",
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -2049,20 +2165,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
                                paste(conp1.c2, collapse = "\n"), "\n" 
               )
             }
-            ## Only region 'c' and 'd' does not have models, plot other two regions
-            if (exists("conp1.c1") == F & 
-                exists("conp1.d1") == F) {
+            ## only region 'c' and 'd' does not have models, plot other two regions
+            if (is.null(conp1.c1) & 
+                is.null(conp1.d1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -2075,23 +2191,23 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
               )
             }
           }
-          ## Only one region has the model
+          ## only one region has the model
           if (sum(A) == 1 ) {
             ## Region 'a', 'b' and 'c' does not have models, plot the other region
-            if (exists("conp1.a1") == F & 
-                exists("conp1.b1") == F & 
-                exists("conp1.c1") == F ) {
+            if (is.null(conp1.a1) & 
+                is.null(conp1.b1) & 
+                is.null(conp1.c1) ) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -2101,20 +2217,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
               )
             }
             ## Region 'a', 'b' and 'd' does not have models, plot the other region
-            if (exists("conp1.a1") == F & 
-                exists("conp1.b1") == F & 
-                exists("conp1.d1") == F ) {
+            if (is.null(conp1.a1) & 
+                is.null(conp1.b1) & 
+                is.null(conp1.d1) ) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -2124,20 +2240,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
               )
             }
             ## Region 'a', 'c' and 'd' does not have models, plot the other region
-            if (exists("conp1.a1") == F & 
-                exists("conp1.c1") == F & 
-                exists("conp1.d1") == F ) {
+            if (is.null(conp1.a1) & 
+                is.null(conp1.c1) & 
+                is.null(conp1.d1) ) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", 
@@ -2147,20 +2263,20 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
               )
             }
             ## Region 'b', 'c' and 'd' does not have models, plot the other region
-            if (exists("conp1.b1") == F & 
-                exists("conp1.c1") == F & 
-                exists("conp1.d1") == F) {
+            if (is.null(conp1.b1) & 
+                is.null(conp1.c1) & 
+                is.null(conp1.d1)) {
               c.plot <- paste0("digraph nice {", "\n", "graph [compound = true, 
                                nodesep = 1.8, ranksep =0.9, layout = dot, 
-                               rankdir = LR]", "\n", "node[fontname=Helvetica, 
+                               rankdir = LR,", paste0("label = ", title, ",") , "labelloc = 't', overlap = true, fontsize = 250]", "\n", "node[fontname=Helvetica, 
                                shape=box, fixedsize=T, fontsize=100, 
                                color=dodgerblue, style=filled, penwidth=6, width=4, 
                                height=3]", "\n", 
-                               paste0(name[1]), "[fillcolor=violet]", "\n", 
+                               paste0(endogenous), "[fillcolor=Violet]", "\n", 
                                "node[fontname=Helvetica, shape=diamond, fixedsize=T, 
                                fontsize=100, color=dodgerblue, style=filled, 
                                penwidth=6]", "\n", 
-                               paste0(name[2]), "[fillcolor=dodgerblue]", "\n", 
+                               paste0(exogenous), "[fillcolor=dodgerblue]", "\n", 
                                "node[fontname=Helvetica, shape=box, fixedsize=F, 
                                color=dodgerblue, fontsize=80, penwidth=6]", "\n", 
                                paste0(conp1.m1, collapse = ";"), "\n", "}", "\n" 
@@ -2182,7 +2298,7 @@ plot.netSEMp2 <- function(x, cutoff = c(0.3,0.6,0.8),latent = NULL, plot.save = 
   semplot <- DiagrammeR::grViz(c.plot)
   
   if (plot.save) {
-    ### Export graph as follows
+    ### export graph as follows
     semplot %>% export_svg %>% charToRaw %>% rsvg %>% 
       png::writePNG(paste0(filename, ".png"))
     

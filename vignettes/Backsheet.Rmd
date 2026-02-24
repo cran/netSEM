@@ -39,12 +39,12 @@ Load data and run code to build netSEM
 data(backsheet)
 
 ## Run netSEMp1 model
-ans1 <- netSEMp1(backsheet)
+ans1 <- netSEMp1(backsheet, exogenous = "Hours", endogenous = "YI")
 ## Plot the network model for principle 1
 plot(ans1, cutoff = c(0.3, 0.6, 0.9))
 
 ## Run netSEMp2 model
-ans2 <- netSEMp2(backsheet)
+ans2 <- netSEMp2(backsheet, exogenous = "Hours", endogenous = "YI")
 ## Plot the network model for principle 2
 plot(ans2, cutoff = c(0.3, 0.6, 0.9))
 

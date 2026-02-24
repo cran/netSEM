@@ -47,12 +47,12 @@ data(metal)
 ?metal
 
 ## Run netSEMp1 model
-ans1 <- netSEMp1(metal, str = TRUE)
+ans1 <- netSEMp1(metal, exogenous = "Z", endogenous = "Hardness")
 ## Plot the network model for principle 1 
 plot(ans1, cutoff = c(0.3,0.6,0.9))
 
 ## Run netSEMp2 model
-ans2 <- netSEMp2(metal, str = TRUE, criterion = "AIC")
+ans2 <- netSEMp2(metal, exogenous = "Z", endogenous = "Hardness", criterion = "AIC")
 ## Plot the network model for principle 2 
 plot(ans2, cutoff = c(0.3,0.6,0.9))
 ```

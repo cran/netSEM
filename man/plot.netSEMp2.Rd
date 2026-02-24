@@ -6,8 +6,9 @@
 \usage{
 \method{plot}{netSEMp2}(
   x,
-  cutoff = c(0.3, 0.6, 0.8),
+  cutoff = NULL,
   latent = NULL,
+  title = "netSEMp2",
   plot.save = FALSE,
   filename = NULL,
   style = TRUE,
@@ -21,6 +22,8 @@
 
 \item{latent}{The latent variable that corresponds to the mechanic variable. The default is NULL.}
 
+\item{title}{The title of the plot. Default value is "netSEMp2".}
+
 \item{plot.save}{True/False, it saves the network diagram plot as png file. The default is false.}
 
 \item{filename}{A character string naming a file to save as a png file.}
@@ -30,12 +33,12 @@
 \item{...}{A S3 generic/method consistency.}
 }
 \value{
-An html style plot of multiple regression relationship pathway diagram between exogenous variables and an endogenous variable. 
+An html style plot of pairwise relationship pathway diagram between exogenous variables and an endogenous variable. 
 Arrows show relationships between each variable with given statistical relations along the connection lines.
 }
 \description{
 Plot netSEMp2 result
-plot.netSEMp2 plots a network structural equation model diagram, fitted under principle 2, based on best functional form for each selected pairwise variable.
+plot.netSEMp2 plots a structural equation network model diagram, fitted under principle 2, based on best functional form for each selected pairwise variable.
 }
 \examples{
 \dontrun{
@@ -43,25 +46,17 @@ plot.netSEMp2 plots a network structural equation model diagram, fitted under pr
 data(acrylic)
 
 # Build a netSEMp2 model
-ans2 <- netSEMp2(acrylic, criterion = "AIC")
-ans2_BIC <- netSEMp2(acrylic, criterion = "BIC")
+ans <- netSEMp2(acrylic, "IrradTot", "YI")
 
-# Plot the network model 
-plot(ans2, cutoff = c(0.3,0.6,0.8))
-plot(ans2_BIC , cutoff = c(0.3,0.6,0.8))
+# Plot the network model with a title
+plot(ans, cutoff = c(0.3,0.6,0.8), title = "Acrylic")
 
-# Drop Relationship lower than minimum cutoff
-plot(ans2, cutoff = c(0.3,0.6,0.8), style = FALSE)
-
-# plot network model with latent argument labels
-plot(ans2, cutoff = c(0.3, 0.6, 0.8), 
-     latent = c('IAD1' = 'FundAbsEdge', 
-                'IAD2' = 'UVStab', 
-                'IAD2p' = 'UVStab', 
-                'IAD3' = 'YelMet'))
-
+\donttest{
 # plot the network diagram and save file
-#plot(ans, cutoff = c(0.3,0.6,0.8), plot.save = TRUE, filename = "acrylic-netSEMp2"))
+plot(ans, cutoff = c(0.3,0.6,0.8), 
+     plot.save = TRUE, 
+     filename = "acrylic-netSEMp2")
+}
 }
 }
 \seealso{

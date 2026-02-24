@@ -6,9 +6,11 @@
 \usage{
 \method{plot}{netSEMp1}(
   x,
-  cutoff = c(0.2, 0.5, 0.8),
+  cutoff = NULL,
   latent = NULL,
   plot.save = FALSE,
+  title = "netSEM_markovian",
+  path = NULL,
   filename = NULL,
   style = TRUE,
   ...
@@ -22,6 +24,10 @@
 \item{latent}{The latent variable that corresponds to the mechanic variable. The default is NULL.}
 
 \item{plot.save}{True/False, it saves the network diagram plot as a png file. The default is false.}
+
+\item{title}{The title. The default is 'netSEMp1.'}
+
+\item{path}{The pathways to highlight with a certain color. The default is NULL.}
 
 \item{filename}{A character string naming a file to save as a png file.}
 
@@ -38,15 +44,22 @@ Plot netSEMp1 result
 plot.netSEMp1 plots a network structural equation network model diagram, fitted under principle 1, based on best functional form for each selected pairwise variable.
 }
 \examples{
+\dontrun{
 # Load acrylic data set
 data(acrylic)
 
 # Build a netSEM model
-ans <- netSEMp1(acrylic)
+ans <- netSEMp1(acrylic, "IrradTot", "YI")
 
 # Plot the network model 
-plot(ans,cutoff = c(0.3,0.6,0.8))
+plot(ans, cutoff = c(0.3,0.6,0.8))
 
+# Plot the network model without a cutoff
+plot(ans)
+
+plot(ans, cutoff = c(0.3,0.6,0.8), title = "Acrylic")
+
+\donttest{
 # Plot the network diagram with latent argument labels
 plot(ans, cutoff = c(0.3, 0.6, 0.8), 
      latent = c('IAD1' = 'FundAbsEdge', 
@@ -57,9 +70,17 @@ plot(ans, cutoff = c(0.3, 0.6, 0.8),
 # Drop relationships lower than minimum cutoff value
 plot(ans, cutoff = c(0.3,0.6,0.8), style = FALSE)
 
-\dontrun{
+# Change color of pathways
+plot(ans, cutoff = c(0.3,0.6,0.8), 
+     title = "Acrylic", path = c('red', 'IAD1->IAD2p'), 
+     latent = c('IAD1' = 'FundAbsEdge'), style = FALSE)
+
 # Save plot 
-plot(ans, cutoff = c(0.3, 0.6, 0.8), plot.save = TRUE, filename = 'acrylic-netSEMp1')
+plot.netSEMp1(ans, acrylic, 
+              cutoff = c(0.3, 0.6, 0.8), 
+              plot.save = TRUE, 
+              filename = 'acrylic-netSEMp1')
+}
 }
 }
 \seealso{

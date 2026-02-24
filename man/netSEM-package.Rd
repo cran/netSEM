@@ -7,13 +7,6 @@
 \title{netSEM: Network Structural Equation Modeling}
 \description{
 The network structural equation modeling conducts a network statistical analysis on a data frame of coincident observations of multiple continuous variables [1]. It builds a pathway model by exploring a pool of domain knowledge guided candidate statistical relationships between each of the variable pairs, selecting the 'best fit' on the basis of a specific criteria such as adjusted r-squared value. This material is based upon work supported by the U.S. National Science Foundation Award EEC-2052776 and EEC-2052662 for the MDS-Rely IUCRC Center, under the NSF Solicitation: NSF 20-570 Industry-University Cooperative Research Centers Program [1] Bruckman, Laura S., Nicholas R. Wheeler, Junheng Ma, Ethan Wang, Carl K. Wang, Ivan Chou, Jiayang Sun, and Roger H. French. (2013) \doi{10.1109/ACCESS.2013.2267611}.
-
-The R package 'netSEM' conducts a net-SEM statistical analysis (network structural equation modeling) on a dataframe of coincident observations of multiple continuous variables.
-}
-\references{
-1. Bruckman, Laura S., Nicholas R. Wheeler, Junheng Ma, Ethan Wang, Carl K. Wang, Ivan Chou, Jiayang Sun, and Roger H. French. "Statistical and Domain Analytics Applied to PV Module Lifetime and Degradation Science." IEEE Access 1 (2013): 384-403. doi:10.1109/ACCESS.2013.2267611
-
-2. Bruckman, Laura S., Nicholas R. Wheeler, Ian V. Kidd, Jiayang Sun, and Roger H. French. "Photovoltaic Lifetime and Degradation Science Statistical Pathway Development: Acrylic Degradation." In SPIE Solar Energy+ Technology, 8825:88250D-8. International Society for Optics and Photonics, 2013. doi:10.1117/12.2024717
 }
 \author{
 \strong{Maintainer}: Laura S. Bruckman \email{lsh41@case.edu} (\href{https://orcid.org/0000-0003-1271-1072}{ORCID})
@@ -39,6 +32,7 @@ Other contributors:
   \item Yeajin Jo \email{yxj414@case.edu} (\href{https://orcid.org/0000-0001-7026-3779}{ORCID}) [contributor]
   \item Xuanji Yu \email{xxy530@case.edu} (\href{https://orcid.org/0000-0003-1967-3769}{ORCID}) [contributor]
   \item Kemal Ozdemirli \email{kxo146@case.edu} [contributor]
+  \item Van D. Tran \email{vxt101@case.edu} (\href{https://orcid.org/0009-0008-4355-0543}{ORCID}) [contributor]
   \item Jonathan Gordon \email{jgordon5@bowdoin.edu} (\href{https://orcid.org/0009-0007-5958-7386}{ORCID}) [contributor]
   \item Jayvic Cristian Jimenez \email{jxj440@case.edu} (\href{https://orcid.org/0000-0002-2342-5648}{ORCID}) [contributor]
   \item Jiqi Liu \email{jxl1763@case.edu} (\href{https://orcid.org/0000-0003-2016-4160}{ORCID}) [contributor]
